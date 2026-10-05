@@ -91,3 +91,11 @@ html,body{height:100%}
   .welcome .instructions{display:none}
   #whisper{bottom:calc(var(--dock-h) + 170px)}
 }
+
+/* Welcome screen stands alone: the corner title, room name and HUD appear once you enter. */
+body:not(.started) header #home,
+body:not(.started) .coordinates,
+body:not(.started) .inventory,
+body:not(.started) .joystick,
+body:not(.started) .reticle,
+body:not(.started) #interact{visibility:hidden}

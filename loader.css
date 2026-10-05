@@ -1,0 +1,24 @@
+/* Loading screen: Dorothy's lettering over ink, progress stitched like Aida cloth. */
+#loader{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px));
+  background:
+    radial-gradient(ellipse at 50% 38%,#3a2140 0%,#21152f 55%,#140c17 100%);
+  color:#ffd2e7;font-family:'Lucida Console',Monaco,'Courier New',monospace;transition:opacity .6s ease,visibility .6s}
+#loader::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
+  background-image:radial-gradient(#ffd9ea 0.8px,transparent 1.2px),radial-gradient(#ffd9ea 0.6px,transparent 1px);
+  background-size:97px 89px,61px 53px;background-position:13px 7px,40px 31px}
+#loader.done{opacity:0;visibility:hidden}
+.loader-inner{position:relative;width:min(380px,100%);text-align:center}
+.loader-kicker{margin:0 0 18px;font-size:12px;letter-spacing:.08em;color:#e8a9c8}
+.loader-mark{margin:0 0 30px;font:400 clamp(34px,11vw,68px)/1.12 Dorothy,'Lucida Console',monospace;letter-spacing:.03em;text-transform:uppercase;color:#ffcfe4;text-shadow:2px 3px #1e1225}
+.stitch-frame{padding:7px;border:1px dashed #b97c9e;background:#1b111c}
+.stitch-strip{display:grid;grid-template-columns:repeat(21,1fr);height:26px;
+  background-color:#fbe6f0;
+  background-image:linear-gradient(90deg,#d8b3c6 1px,transparent 1px),linear-gradient(#d8b3c6 1px,transparent 1px);
+  background-size:calc(100% / 21) 100%,100% 50%}
+.stitch-strip i{position:relative;display:block}
+.stitch-strip i.on::before,.stitch-strip i.on::after{content:"";position:absolute;left:18%;right:18%;top:50%;height:3px;margin-top:-1.5px;background:#b04f84;border-radius:1px}
+.stitch-strip i.on::before{transform:rotate(45deg)}
+.stitch-strip i.on::after{transform:rotate(-45deg);background:#c9669b}
+.loader-line{display:flex;justify-content:space-between;gap:12px;margin:12px 0 0;font-size:13px;line-height:1.5;text-align:left;color:#f0bcd6}
+#loader-pct{font-variant-numeric:tabular-nums;color:#ffe3ef}
+@media (prefers-reduced-motion:reduce){#loader{transition:none}}
