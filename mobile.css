@@ -35,7 +35,7 @@ html,body{height:100%}
   .welcome{position:fixed;top:calc(62px + var(--safe-top));bottom:var(--dock-h);left:16px;right:16px;width:auto;max-width:520px;max-height:none;margin:0 auto;transform:none;display:flex;flex-direction:column;align-items:center;padding:8px 4px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .welcome>:first-child{margin-top:auto}
   .welcome .entry-choices{margin-bottom:auto}
-  .welcome>p:first-child{margin:0 0 4px;font-size:12px}
+  .welcome>p:first-child{margin:auto 0 4px;font-size:12px}
   .welcome h1{font-size:clamp(34px,11vw,60px);line-height:1.15;margin:8px 0 12px}
   .welcome .instructions{font-size:14px;line-height:1.6;margin:8px 0}
   .entry-choices{width:100%;max-width:420px;margin-top:16px}
@@ -99,3 +99,8 @@ body:not(.started) .inventory,
 body:not(.started) .joystick,
 body:not(.started) .reticle,
 body:not(.started) #interact{visibility:hidden}
+
+/* Centered welcome sits over the wallpaper: a soft ink glow keeps the small text readable. */
+@media (max-width:760px) and (orientation:portrait){
+  .welcome{background:radial-gradient(ellipse 75% 42% at 50% 50%,#160e18c4 0%,#160e1866 55%,transparent 80%)}
+}

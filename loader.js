@@ -1,7 +1,7 @@
 // Loading screen: fetches the Babylon engine with a byte counter, then starts app.js.
 // The apartment model reports its own download progress through the 'dw-progress' event.
 (() => {
-  const VERSION = 'perf-20261005';
+  const VERSION = 'simple-20261005';
   const ENGINE_BYTES = 2826497;   // vendor/babylon.js, uncompressed
   const CELLS = 21;
 
