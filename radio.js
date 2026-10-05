@@ -1,0 +1,8 @@
+// Original temporary sound sketches. Replace these with licensed recordings later.
+export class RoomRadio {
+ constructor(){this.playing=false;this.station=0;this.volume=.35;this.ctx=null;this.nodes=[];this.muted=false}
+ async toggle(){if(this.playing){this.playing=false;this.silence();return}const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw new Error('Audio is unavailable in this browser.');if(!this.ctx){this.ctx=new Audio();this.master=this.ctx.createGain();this.master.gain.value=0;this.pan=this.ctx.createStereoPanner();this.master.connect(this.pan);this.pan.connect(this.ctx.destination);for(let i=0;i<3;i++){const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),lfo=this.ctx.createOscillator(),amount=this.ctx.createGain();osc.type='sine';gain.gain.value=.18;lfo.frequency.value=.06+i*.027;amount.gain.value=.05;lfo.connect(amount);amount.connect(gain.gain);osc.connect(gain);gain.connect(this.master);osc.start();lfo.start();this.nodes.push(osc)}this.tune(this.station)}await this.ctx.resume();this.playing=true}
+ tune(station){this.station=station;const notes=station===0?[130.81,196,261.63]:[146.83,220,329.63];this.nodes.forEach((o,i)=>o.frequency.setTargetAtTime(notes[i],this.ctx.currentTime,.45))}
+ silence(){if(this.ctx)this.master.gain.setTargetAtTime(0,this.ctx.currentTime,.06)}
+ update(player,enabled,hidden){if(!this.ctx)return;const dx=6.25-player.x,dz=-4.7-player.y,distance=Math.hypot(dx,dz),attenuation=Math.max(0,1-distance/12)**2;const gain=this.playing&&enabled&&!hidden?this.volume*.14*attenuation:0;this.master.gain.setTargetAtTime(gain,this.ctx.currentTime,.15);const angle=Math.atan2(dz,dx)-player.a;this.pan.pan.setTargetAtTime(Math.sin(angle)*.7,this.ctx.currentTime,.15)}
+}
