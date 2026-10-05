@@ -35,7 +35,9 @@ export class ApartmentWorld {
   for(const obj of this.objects.filter(o=>o.key.startsWith('thread'))){const m=B.MeshBuilder.CreateTorus(obj.key,{diameter:.2,thickness:.024,tessellation:12},this.scene);m.position.set(obj.x,1.05,obj.y);m.rotation.x=Math.PI/2;m.material=spiritMat;this.props.set(obj.key,m)}
   this.wallMats=[...new Set(this.wallMats)];this.maps=this.wallMats.map(m=>m.diffuseTexture);this.ready=true;document.querySelector('#begin').disabled=false;document.querySelector('#begin').textContent='Enter the apartment';document.querySelector('#load-state').textContent='';
  }catch(e){console.error(e);document.querySelector('#load-state').textContent='The apartment could not load. Refresh to try again, or explore through Rooms.';document.querySelector('#begin').disabled=true;document.querySelector('#begin').textContent='Apartment unavailable';this.failed=true}}
- resize(){const aspect=innerWidth/innerHeight,budget=this.touch?210000:650000,w=Math.min(1250,Math.sqrt(budget*aspect));this.engine.setSize(Math.floor(w),Math.floor(w/aspect))}
+ resize(){const aspect=innerWidth/innerHeight,budget=this.touch?210000:650000,w=Math.min(1250,Math.sqrt(budget*aspect));this.engine.setSize(Math.floor(w),Math.floor(w/aspect));
+  // Babylon's fov is vertical. In portrait that leaves a narrow ~35° side-to-side view, so widen it to keep ~64° across, capped so walls don't fisheye.
+  const deg=Math.PI/180,wide=aspect<1?2*Math.atan(Math.tan(32*deg)/aspect):72*deg;this.camera.fov=Math.min(100*deg,Math.max(72*deg,wide))}
  blocked(x,z){if(!this.ready)return true;const r=.22,y=-z;
   if(this.boxes.some(({bounds:b,name})=>!(name==='secret_wall'&&this.passageOpen)&&!(name.startsWith('bedroom_partition')&&this.passageOpen)&&b[2]<1.8&&b[5]>.04&&x>b[0]-r&&x<b[3]+r&&y>b[1]-r&&y<b[4]+r))return true;
   return [[-r,-r],[-r,r],[r,-r],[r,r]].some(([dx,dy])=>!this.floors.some(b=>x+dx>=b[0]&&x+dx<=b[3]&&y+dy>=b[1]&&y+dy<=b[4]));

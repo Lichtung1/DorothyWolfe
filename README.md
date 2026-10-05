@@ -25,6 +25,7 @@ Open a terminal in this folder and run `python -m http.server 8000` (or `python3
 
 - `index.html`: page structure and entrance buttons.
 - `style.css` and `soft-terminal.css`: appearance.
+- `mobile.css`: phone layout (portrait first). Loaded last, so phone-specific changes go here; desktop is not affected.
 - `app.js`: controls, directory text, interaction positions, room shortcuts and puzzle state.
 - `babylon-world.js`: active 3D renderer, model loading, collision checks, mirror, lights and procedural objects.
 - `radio.js`: audio.

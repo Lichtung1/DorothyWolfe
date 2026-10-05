@@ -1,5 +1,5 @@
 import { RoomRadio } from './radio.js';
-import { ApartmentWorld } from './babylon-world.js';
+import { ApartmentWorld } from './babylon-world.js?v=mobile-20261005';
 const canvas=document.querySelector('#world'),win=document.querySelector('#window'),body=document.querySelector('#window-body'),title=document.querySelector('#window-title');
 const map=[
 '11111111111111111111',
@@ -28,11 +28,11 @@ let world=null,last=0,dream=false,lace=true,sound=false,audio,started=false,near
 const targets={home:{x:0,y:8.5,a:-Math.PI/2},wardrobe:{x:-7.4,y:-3.6,a:0},library:{x:7.4,y:-3,a:0},mirror:{x:7.4,y:2.1,a:0},radio:{x:7.4,y:-4.7,a:Math.PI},model:{x:0,y:2.4,a:-Math.PI/2},secret:{x:-8.1,y:-7,a:-Math.PI/2}};
 const objects=[{x:-8.1,y:-5.8,key:'passage',name:'HIDDEN PASSAGE'},{x:0,y:0,key:'model',name:'CENTRAL PEARL'},{x:6.25,y:-4.7,key:'radio',name:'THE RADIO'},{x:-6.45,y:-2.35,key:'wardrobe',name:'THE WARDROBE'},{x:9,y:-3,key:'library',name:'THE ARCHIVE'},{x:9.3,y:2.1,key:'mirror',name:'THE MIRROR'},{x:-2.85,y:-8.25,key:'card',name:'READER’S CARD'},{x:-7.9,y:.8,key:'terminal',name:'THE COMPUTER'},{x:-7.6,y:-3.7,key:'thread0',name:'a loose thread'},{x:7.5,y:-2,key:'thread1',name:'another loose thread'},{x:7.4,y:3.8,key:'thread2',name:'the last loose thread'}];
 try{world=new ApartmentWorld(canvas,map,objects,touch)}catch(error){console.error(error);canvas.style.display='none';document.querySelector('#welcome h1').textContent='Explore the directory.';document.querySelector('.instructions').textContent='3D is unavailable in this browser. Rooms still opens every shelf.';document.querySelector('#begin').textContent='Apartment unavailable';document.querySelector('#begin').disabled=true}
-addEventListener('resize',()=>world?.resize());
+addEventListener('resize',()=>world?.resize());addEventListener('orientationchange',()=>setTimeout(()=>world?.resize(),250));
 function solid(x,y){if(x>=29&&x<33&&y>=8&&y<12)return false;return !map[Math.floor(y)]||map[Math.floor(y)][Math.floor(x)]!=='0'}
 function canStand(x,y){return world?.ready&&!world.blocked(x,y)}
 function move(dx,dy){if(canStand(player.x+dx,player.y))player.x+=dx;if(canStand(player.x,player.y+dy))player.y+=dy}
-function begin(){if(world&&!world.ready&&!world.failed)return;started=true;document.querySelector('#welcome').classList.add('gone')}
+function begin(){if(world&&!world.ready&&!world.failed)return;started=true;document.querySelector('#welcome').classList.add('gone');document.body.classList.add('started')}
 function say(text){document.querySelector('#whisper').textContent=text}
 function log(text){const p=document.createElement('p');p.textContent=text;const el=document.querySelector('#log');el.append(p);while(el.children.length>20)el.firstElementChild.remove();el.scrollTop=el.scrollHeight}
 function ping(freq=480){if(!sound)return;try{audio??=new(window.AudioContext||window.webkitAudioContext)();audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type='triangle';o.frequency.setValueAtTime(freq,audio.currentTime);o.frequency.exponentialRampToValueAtTime(freq/2,audio.currentTime+.3);g.gain.setValueAtTime(.035,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.35);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.36)}catch{log('Sound is unavailable in this browser.')}}
@@ -53,7 +53,7 @@ const roomSigns=[{key:'wardrobe',label:'Textile room',x:-5.12,z:-4.5},{key:'libr
 targets.atelier={x:-7.4,y:3,a:-Math.PI/2};targets.gallery={x:0,y:-7,a:-Math.PI/2};
 for(const sign of roomSigns){const button=document.createElement('button');button.className='room-arrow';button.dataset.go=sign.key;button.setAttribute('aria-label','Go to '+sign.label);button.innerHTML='<span class="floating-arrow" aria-hidden="true">↓</span><span class="room-arrow-label">'+sign.label+'</span>';button.hidden=true;arrowLayer.append(button);sign.button=button}
 function updateRoomSigns(t){for(const sign of roomSigns){const point=started&&!interactionTimer&&!win.open&&!document.body.classList.contains('terminal-open')?world?.projectRoom?.(sign,player,t,reduced):null;sign.button.hidden=!point;if(point){sign.button.style.left=point.x+'%';sign.button.style.top=point.y+'%'}}}
-function browseFirst(){started=true;document.querySelector('#welcome').classList.add('gone');resetMovement();openPanel('rooms')}
+function browseFirst(){started=true;document.querySelector('#welcome').classList.add('gone');document.body.classList.add('started');resetMovement();openPanel('rooms')}
 document.querySelector('#browse-first').addEventListener('click',browseFirst);
 function card(){return '<h2>Reader card</h2><p>A small personalization demo. Your name stays in this browser.</p><div class="card"><span>DOROTHY WOLFE</span><h3>Reader card</h3><div class="card-name">'+esc(getName()||'Visitor')+'</div></div><form id="card-form" class="name-form"><label for="reader">Your name</label><input id="reader" name="reader" maxlength="40" required value="'+esc(getName())+'"><button class="panel-action">Save card</button></form><p class="fine">No email or account needed.</p>'}
 function openPanel(key){if(interactionTimer){clearTimeout(interactionTimer);interactionTimer=null}begin();if(key==='model'){title.textContent='APARTMENT / PUZZLE';body.innerHTML=modelPanel()}else if(key==='radio'){title.textContent='RADIO / CONTROLS';body.innerHTML=radioPanel()}else if(key==='zine'){title.textContent='ROOM NOTES / SAMPLE ISSUE 001';body.innerHTML=zinePanel()}else if(key==='card'){title.textContent='LIBRARY / READER’S CARD';body.innerHTML=card()}else if(panels[key]){title.textContent=panels[key][0];body.innerHTML=panels[key][1]}else return;resetMovement();setTerminal(false);document.querySelector('#window-path').textContent='dw:/'+(key==='rooms'?'directory':key);for(const sign of roomSigns)sign.button.hidden=true;if(!win.open)win.showModal();win.scrollTop=0;ping()}

@@ -1,0 +1,93 @@
+/* Phone layout. Loaded last; desktop (wide + fine pointer) is untouched. */
+
+/* Touch hygiene for every touch device. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{height:100%}
+@media (pointer:coarse){
+  body{position:fixed;inset:0;width:100%;-webkit-tap-highlight-color:transparent}
+  button,a{touch-action:manipulation}
+  .joystick,.joystick *,#world{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+}
+
+/* Portrait phones and narrow windows. */
+@media (max-width:760px) and (orientation:portrait){
+  :root{--safe-top:env(safe-area-inset-top,0px);--dock-h:calc(66px + var(--safe-bottom))}
+
+  /* Header: one compact row. */
+  header{padding:calc(10px + var(--safe-top)) 12px 0 14px;align-items:center;gap:8px}
+  header a{font-size:clamp(16px,5vw,21px);line-height:1.15;white-space:normal;overflow-wrap:normal;word-break:keep-all;max-width:none;flex:1 1 auto;min-width:0}
+  header a span{display:none}
+  .top-actions{gap:6px;flex:0 0 auto}
+  .top-actions button{white-space:nowrap;font-size:12px;padding:6px 8px;min-height:40px;min-width:40px}
+
+  /* Status row under the header: room name left, threads right. */
+  .coordinates,.inventory{top:calc(68px + var(--safe-top))}
+  .coordinates{left:14px;font-size:12px}
+  .inventory{right:12px;display:flex;align-items:center;gap:8px;pointer-events:auto;text-align:right}
+  .inventory>span:first-of-type{display:none}
+  .inventory strong{font-size:18px;letter-spacing:4px;line-height:1}
+  .inventory #thread-count{font-size:12px;white-space:nowrap}
+  /* The whole counter is the tap target for "Puzzle progress". */
+  .inventory .puzzle-progress{position:absolute;inset:-10px -6px;min-height:0;min-width:0;font-size:0;color:transparent;text-decoration:none;background:none;padding:0}
+  .inventory .puzzle-progress:hover{background:none}
+
+  /* Welcome fills the space between header and dock, scrolls if it must. */
+  .welcome{position:fixed;top:calc(62px + var(--safe-top));bottom:var(--dock-h);left:16px;right:16px;width:auto;max-width:520px;max-height:none;margin:0 auto;transform:none;display:flex;flex-direction:column;align-items:center;padding:8px 4px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .welcome>:first-child{margin-top:auto}
+  .welcome .entry-choices{margin-bottom:auto}
+  .welcome>p:first-child{margin:0 0 4px;font-size:12px}
+  .welcome h1{font-size:clamp(34px,11vw,60px);line-height:1.15;margin:8px 0 12px}
+  .welcome .instructions{font-size:14px;line-height:1.6;margin:8px 0}
+  .entry-choices{width:100%;max-width:420px;margin-top:16px}
+
+  /* Nothing in-world shows until the visitor enters. */
+  body:not(.started) .joystick,
+  body:not(.started) .coordinates,
+  body:not(.started) .inventory,
+  body:not(.started) .reticle,
+  body:not(.started) #interact{visibility:hidden}
+
+  /* Thumb zone: joystick bottom-left, action prompt bottom-right, message above. */
+  .joystick{left:max(18px,env(safe-area-inset-left));bottom:calc(var(--dock-h) + 22px);width:120px;height:146px;opacity:.95}
+  .joystick-ring{width:120px;height:120px}
+  .joystick-ring #stick{width:48px;height:48px;left:35px;top:35px}
+  .joystick-ring i{top:50px}
+  #interact{right:14px;left:auto;transform:none;bottom:calc(var(--dock-h) + 70px);width:auto;min-width:0;max-width:calc(100% - 170px);white-space:normal;text-align:center;line-height:1.35;padding:10px 12px}
+  #whisper{bottom:calc(var(--dock-h) + 190px);width:calc(100% - 32px);font-size:14px;line-height:1.5}
+
+  /* Dock. */
+  .dock{padding:8px 8px calc(8px + var(--safe-bottom))}
+  .dock button{font-size:13px;gap:6px;min-height:50px;white-space:nowrap}
+  .dock button span{font-size:19px}
+
+  /* Terminal sits above the dock, full width. */
+  .console{left:8px;width:calc(100% - 16px);bottom:calc(var(--dock-h) + 8px + var(--keyboard));max-height:calc(100svh - 140px)}
+  .keyboard-open .console{bottom:calc(8px + var(--keyboard))}
+  .console-head{align-items:center}
+  #log{max-height:min(140px,22svh)}
+  #terminal label{font-size:11px;white-space:nowrap}
+  #command{font-size:16px} /* 16px stops iOS zooming on focus */
+
+  /* Windows: near full-screen sheet. */
+  dialog#window{width:calc(100% - 16px);max-height:calc(100svh - 16px - var(--safe-top) - var(--safe-bottom));max-width:none}
+  #window-body{padding:18px 18px 22px}
+  #window-body .room-choice{padding:14px 12px}
+  .window-path{padding:8px 18px}
+
+  /* Floating room labels a touch smaller so they don't crowd. */
+  .room-arrow-label{font-size:12px;padding:4px 7px}
+  .floating-arrow{font-size:32px}
+}
+
+/* Very small phones (iPhone SE, mini). */
+@media (max-width:360px) and (orientation:portrait){
+  .top-actions button{font-size:11px;padding:6px}
+  .dock button{font-size:12px}
+  .dock button span{font-size:17px}
+  .joystick{width:108px}.joystick-ring{width:108px;height:108px}.joystick-ring #stick{left:29px;top:29px}.joystick-ring i{top:44px}
+  #interact{max-width:calc(100% - 150px)}
+}
+@media (max-height:620px) and (orientation:portrait){
+  .welcome .instructions{display:none}
+  #whisper{bottom:calc(var(--dock-h) + 170px)}
+}
