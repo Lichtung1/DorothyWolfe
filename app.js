@@ -1,5 +1,5 @@
 import { RoomRadio } from './radio.js';
-import { ApartmentWorld } from './babylon-world.js?v=simple-20261005';
+import { ApartmentWorld } from './babylon-world.js?v=paper-20261005';
 const canvas=document.querySelector('#world'),win=document.querySelector('#window'),body=document.querySelector('#window-body'),title=document.querySelector('#window-title');
 const map=[
 '11111111111111111111',
@@ -48,7 +48,7 @@ shop:['SHOP PREVIEW','<h2>Shop</h2><p>Placeholder for products, sizes and purcha
 library:['LIBRARY','<h2>Library</h2><p>A place for publications, journal entries and events.</p><button class="panel-action" data-open="zine">Open page viewer demo</button><button class="panel-action" data-open="card">Create a reader card</button>'],
 mirror:['ABOUT / MIRROR','<h2>Dorothy Wolfe</h2><p>Dorothy Wolfe is Opal’s fashion label, named for her great-grandmother Dorothy and her own last name.</p><p>The mirror reflects your position as a floating sphere. Walk across it to see the reflection move.</p><button class="panel-action" id="dream-button">Toggle Dream mode</button>'],
 about:['ABOUT','<h2>Dorothy Wolfe</h2><p>Dorothy Wolfe is Opal’s fashion label, named for her great-grandmother Dorothy and her own last name.</p>'],
-help:['CONTROLS','<h2>How to explore</h2><p>One joystick: up and down walk, left and right turn. Push diagonally to do both. Tap the nearby-object prompt to interact.</p><p>Desktop: W/S walk, A/D or arrow keys turn, E interacts. Drag to turn. Escape closes a window.</p><p>Rooms opens content and room shortcuts. Terminal accepts commands. Dream changes the lighting and highlights the hidden passage.</p><p>Puzzle: collect three threads, activate the central pearl, then walk through the opened wall at the back of the textile room.</p><div class="help-list">goto wardrobe / library / mirror / home<br>dream — toggle lighting and reveal the seam<br>weave — toggle wallpaper<br>threads — puzzle progress<br>unravel — activate the collected threads<br>sound — toggle audio<br>clear — clear terminal</div>']};
+help:['CONTROLS','<h2>How to explore</h2><p>One joystick: up and down walk, left and right turn. Push diagonally to do both. Tap the nearby-object prompt to interact. Tap ⇄ beside the joystick to move it to the other side.</p><p>Desktop: W/S walk, A/D or arrow keys turn, E interacts. Drag to turn. Escape closes a window.</p><p>Rooms opens content and room shortcuts. Terminal accepts commands. Dream changes the lighting and highlights the hidden passage.</p><p>Puzzle: collect three threads, activate the central pearl, then walk through the opened wall at the back of the textile room.</p><div class="help-list">goto wardrobe / library / mirror / home<br>dream — toggle lighting and reveal the seam<br>weave — toggle wallpaper<br>threads — puzzle progress<br>unravel — activate the collected threads<br>sound — toggle audio<br>clear — clear terminal</div>']};
 const arrowLayer=document.querySelector('#room-arrows');
 const roomSigns=[{key:'wardrobe',label:'Textile room',x:-5.12,z:-4.5},{key:'library',label:'Archive',x:5.12,z:-3.5},{key:'mirror',label:'Fitting room',x:5.12,z:4.1},{key:'atelier',label:'Atelier',x:-5.12,z:4.1},{key:'gallery',label:'Gallery',x:0,z:-5.62}];
 targets.atelier={x:-7.4,y:3,a:-Math.PI/2};targets.gallery={x:0,y:-7,a:-Math.PI/2};
@@ -73,6 +73,10 @@ canvas.addEventListener('pointerdown',e=>{if(drag)return;drag={id:e.pointerId,x:
 canvas.addEventListener('pointermove',e=>{if(!touch&&drag&&e.pointerId===drag.id&&!win.open){player.a+=(e.clientX-drag.x)*(touch?.0045:.006);if(Math.abs(e.clientX-drag.start)>5||Math.abs(e.clientY-drag.y)>5)drag.moved=true;drag.x=e.clientX;if(drag.moved)begin()}});
 canvas.addEventListener('pointerup',e=>{if(!drag||drag.id!==e.pointerId)return;if(!drag.moved){const hit=world?.hitAt(e.clientX,e.clientY);if(hit)interact(hit);else begin()}drag=null});canvas.addEventListener('pointercancel',()=>drag=null);canvas.addEventListener('lostpointercapture',()=>drag=null);
 const joystick=document.querySelector('#joystick'),stick=document.querySelector('#stick');
+// Joystick side: right by default, ⇄ flips it, choice remembered in this browser.
+function setHand(side){document.body.classList.toggle('hand-left',side==='left');try{localStorage.setItem('dw-hand',side)}catch{}}
+{let saved='right';try{saved=localStorage.getItem('dw-hand')||'right'}catch{}setHand(saved)}
+document.querySelector('#swap-hand').addEventListener('click',()=>{resetMovement();setHand(document.body.classList.contains('hand-left')?'right':'left');ping(520)});
 function setJoy(x,y){const length=Math.hypot(x,y),radius=38,scale=length>radius?radius/length:1;let dx=x*scale,dy=y*scale;const axis=v=>Math.abs(v)<6?0:Math.sign(v)*(Math.abs(v)-6)/(radius-6);joy.x=axis(dx);joy.y=axis(dy);stick.style.transform='translate('+dx+'px,'+dy+'px)'}
 function resetMovement(){Object.keys(keys).forEach(k=>keys[k]=false);joy.id=null;joy.x=joy.y=0;drag=null;const s=document.querySelector('#stick');if(s)s.style.transform='translate(0px,0px)'}
 function updateJoy(e){const r=joystick.querySelector('.joystick-ring').getBoundingClientRect();setJoy(e.clientX-r.left-r.width/2,e.clientY-r.top-r.height/2)}

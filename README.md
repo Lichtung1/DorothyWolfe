@@ -26,6 +26,7 @@ Open a terminal in this folder and run `python -m http.server 8000` (or `python3
 - `index.html`: page structure and entrance buttons.
 - `style.css` and `soft-terminal.css`: appearance.
 - `loader.js` / `loader.css`: loading screen. `loader.js` loads the Babylon engine with a progress count, then starts `app.js`. If you replace `vendor/babylon.js`, update `ENGINE_BYTES` at the top of `loader.js` (the bar still works if you forget, just less accurately).
+- `wallpapers.js`: which wallpaper goes in which room (edit `PAPERS`). Papers live in `assets/wallpapers/` as 512px JPEGs. Walls in the GLB just need a material whose name contains "floral"; the site cuts and re-papers them by room at load.
 - `mobile.css`: phone layout (portrait first). Loaded last, so phone-specific changes go here; desktop is not affected.
 - `app.js`: controls, directory text, interaction positions, room shortcuts and puzzle state.
 - `babylon-world.js`: active 3D renderer, model loading, collision checks, mirror, lights and procedural objects.

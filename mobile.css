@@ -104,3 +104,37 @@ body:not(.started) #interact{visibility:hidden}
 @media (max-width:760px) and (orientation:portrait){
   .welcome{background:radial-gradient(ellipse 75% 42% at 50% 50%,#160e18c4 0%,#160e1866 55%,transparent 80%)}
 }
+
+/* Joystick side. Right by default (most people steer with the right thumb); body.hand-left flips it.
+   Applies to touch devices and narrow portrait windows; desktop keeps its own layout. */
+#swap-hand{display:none}
+@media (pointer:coarse),(max-width:760px) and (orientation:portrait){
+  #swap-hand{display:grid;place-items:center;position:fixed;z-index:3;width:40px;height:40px;min-width:40px;min-height:40px;padding:0;
+    font-size:20px;line-height:1;color:#ffd2e7;background:#1b111cb0;border:1px solid #ffb9dc8c;border-radius:50%;
+    bottom:calc(var(--dock-h,66px) + 4px)}
+  #swap-hand:hover{background:#1b111cb0;color:#fff}
+  #swap-hand:active{background:var(--pink);color:var(--ink)}
+  body:not(.started) #swap-hand,.terminal-open #swap-hand{visibility:hidden}
+
+  /* right-handed (default): joystick right, prompt left, ⇄ on the inner side of the joystick */
+  body:not(.hand-left) .joystick{left:auto;right:max(18px,env(safe-area-inset-right))}
+  body:not(.hand-left) #interact{right:auto;left:14px}
+  body:not(.hand-left) #swap-hand{right:calc(max(18px,env(safe-area-inset-right)) + 128px);left:auto}
+  /* left-handed: mirror */
+  body.hand-left .joystick{right:auto;left:max(18px,env(safe-area-inset-left))}
+  body.hand-left #interact{left:auto;right:14px}
+  body.hand-left #swap-hand{left:calc(max(18px,env(safe-area-inset-left)) + 128px);right:auto}
+}
+/* Landscape phones: joystick sits lower, no dock underneath it. */
+@media (max-height:520px) and (pointer:coarse){
+  #swap-hand{bottom:16px}
+  body:not(.hand-left) .joystick{right:20px}
+  body:not(.hand-left) #interact{left:20px}
+  body:not(.hand-left) #swap-hand{right:124px}
+  body.hand-left .joystick{left:20px}
+  body.hand-left #swap-hand{left:124px}
+}
+@media (max-width:360px) and (orientation:portrait){
+  body:not(.hand-left) #swap-hand{right:calc(18px + 114px)}
+  body.hand-left #swap-hand{left:calc(18px + 114px)}
+}
