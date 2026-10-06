@@ -1,5 +1,5 @@
 import { RoomRadio } from './radio.js';
-import { ApartmentWorld } from './babylon-world.js?v=bedroom-20261005';
+import { ApartmentWorld } from './babylon-world.js?v=glbpaper3-20261005';
 const canvas=document.querySelector('#world'),win=document.querySelector('#window'),body=document.querySelector('#window-body'),title=document.querySelector('#window-title');
 const map=[
 '11111111111111111111',

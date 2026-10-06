@@ -1,4 +1,3 @@
-import { paperWalls, paperFor } from './wallpapers.js?v=bedroom-20261005';
 const B=window.BABYLON;
 export class ApartmentWorld {
  constructor(canvas,map,objects,touch){
@@ -19,22 +18,19 @@ export class ApartmentWorld {
   const moon=B.MeshBuilder.CreateSphere('distant moon',{diameter:3.6,segments:12},this.scene);moon.position.set(-17,23,-37);const m=new B.StandardMaterial('moon ivory',this.scene);m.disableLighting=true;m.emissiveColor=B.Color3.FromHexString('#d9bccf');moon.material=m;moon.isPickable=false;moon.freezeWorldMatrix();
  }
  async load(){try{
-  const [gl,data]=await Promise.all([B.SceneLoader.ImportMeshAsync(null,'assets/','apartment.glb',this.scene,e=>dispatchEvent(new CustomEvent('dw-progress',{detail:{stage:'model',fraction:e.lengthComputable&&e.total?e.loaded/e.total:Math.min(.99,e.loaded/1606964)}}))),fetch('assets/collision.json?v=bedroom-20261005').then(r=>{if(!r.ok)throw Error('collision');return r.json()})]);this.boxes=data.boxes;this.floors=data.floors;
-  const materials=new Map(),groups=new Map(),walls=[];this.wallMats=[];
+  const [gl,data]=await Promise.all([B.SceneLoader.ImportMeshAsync(null,'assets/','apartment.glb?v=glbpaper3-20261005',this.scene,e=>dispatchEvent(new CustomEvent('dw-progress',{detail:{stage:'model',fraction:e.lengthComputable&&e.total?e.loaded/e.total:Math.min(.99,e.loaded/2235500)}})),'.glb'),fetch('assets/collision.json?v=glbpaper3-20261005').then(r=>{if(!r.ok)throw Error('collision');return r.json()})]);this.boxes=data.boxes;this.floors=data.floors;
+  const materials=new Map(),groups=new Map();this.wallMats=[];
   for(const o of gl.meshes){if(!o.getTotalVertices())continue;o.computeWorldMatrix(true);o.layerMask=1;const src=o.material;
-   if(src){if(!materials.has(src)){const m=new B.StandardMaterial(src.name,this.scene);m.diffuseColor=src.albedoColor?.clone()||B.Color3.White();m.diffuseTexture=src.albedoTexture||null;m.emissiveColor=src.emissiveColor?.clone()||B.Color3.Black();m.emissiveTexture=src.emissiveTexture||null;m.specularColor=B.Color3.Black();m.backFaceCulling=src.backFaceCulling;m.maxSimultaneousLights=5;materials.set(src,m);if(m.diffuseTexture)m.diffuseTexture.anisotropicFilteringLevel=2;if(src.name.includes('floral'))this.wallMats.push(m)}o.material=materials.get(src)}
+   if(src){if(!materials.has(src)){const m=new B.StandardMaterial(src.name,this.scene);m.diffuseColor=src.albedoColor?.clone()||B.Color3.White();m.diffuseTexture=src.albedoTexture||null;m.emissiveColor=src.emissiveColor?.clone()||B.Color3.Black();m.emissiveTexture=src.emissiveTexture||null;m.specularColor=B.Color3.Black();m.backFaceCulling=src.backFaceCulling;m.maxSimultaneousLights=5;materials.set(src,m);if(m.diffuseTexture)m.diffuseTexture.anisotropicFilteringLevel=2;if(src.name.includes('floral')||src.name.startsWith('Wallpaper'))this.wallMats.push(m)}o.material=materials.get(src)}
    if(o.name==='secret_wall'){this.gate=o;this.gateBase=o.position.y;o.material=o.material.clone('passage highlight');continue}
    if(/Floating[ _]pearl/.test(o.name)){this.pearls.push({o,y:o.position.y});continue}
    if(o.name==='mirror_surface'){o.setEnabled(false);continue}
-   if(src&&src.name.includes('floral')){walls.push(o);continue}
    if(!groups.has(o.material))groups.set(o.material,[]);groups.get(o.material).push(o);
   }
   // Performance: combine static pieces that share a material into one mesh (≈190 draw calls → a few dozen). Visual result is identical.
   for(const meshes of groups.values()){const sets=new Map();for(const mesh of meshes){const sig=mesh.getClassName()==='InstancedMesh'||mesh.skeleton||mesh.morphTargetManager?'solo:'+mesh.uniqueId:mesh.getVerticesDataKinds().sort().join()+'|'+(mesh.sideOrientation??'');if(!sets.has(sig))sets.set(sig,[]);sets.get(sig).push(mesh)}
    for(const [sig,set]of sets){let merged=null;if(set.length>1&&!sig.startsWith('solo:')){try{merged=B.Mesh.MergeMeshes(set,true,true,undefined,false,false)}catch(e){console.warn('merge skipped',e)}}
     for(const mesh of merged?[merged]:set){mesh.layerMask=1;mesh.isPickable=false;mesh.freezeWorldMatrix();mesh.doNotSyncBoundingInfo=true}}}
-  // Wallpaper per room (see wallpapers.js).
-  if(walls.length&&this.wallMats[0]){dispatchEvent(new CustomEvent('dw-progress',{detail:{stage:'model',fraction:.99}}));const paper=paperWalls(B,this.scene,walls,this.wallMats[0]);await paper.ready;this.wallMats=paper.materials;if(this.gate){const t=paperFor('textile',this.scene,this.gate.material.diffuseTexture);if(t)this.gate.material.diffuseTexture=t}}
   this.mirror=B.MeshBuilder.CreatePlane('mirror',{width:1,height:2,sideOrientation:B.Mesh.DOUBLESIDE},this.scene);this.mirror.position.set(9.30,1.3,2.1);this.mirror.rotation.y=Math.PI/2;
   const mirrorMat=new B.StandardMaterial('silver mirror',this.scene);mirrorMat.diffuseColor=new B.Color3(.1,.07,.1);mirrorMat.specularColor=B.Color3.Black();this.reflection=new B.MirrorTexture('reflection',{width:this.touch?128:256,height:this.touch?256:512},this.scene,false);this.reflection.mirrorPlane=new B.Plane(1,0,0,-9.30);this.reflection.level=.85;mirrorMat.reflectionTexture=this.reflection;this.mirror.material=mirrorMat;
   this.spirit=B.MeshBuilder.CreateSphere('visitor light',{diameter:.34,segments:8},this.scene);this.spirit.layerMask=2;const spiritMat=new B.StandardMaterial('pearl light',this.scene);spiritMat.disableLighting=true;spiritMat.emissiveColor=B.Color3.FromHexString('#ffd7ed');this.spirit.material=spiritMat;

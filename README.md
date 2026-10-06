@@ -26,13 +26,13 @@ Open a terminal in this folder and run `python -m http.server 8000` (or `python3
 - `index.html`: page structure and entrance buttons.
 - `style.css` and `soft-terminal.css`: appearance.
 - `loader.js` / `loader.css`: loading screen. `loader.js` loads the Babylon engine with a progress count, then starts `app.js`. If you replace `vendor/babylon.js`, update `ENGINE_BYTES` at the top of `loader.js` (the bar still works if you forget, just less accurately).
-- `wallpapers.js`: which wallpaper goes in which room (edit `PAPERS`). Papers live in `assets/wallpapers/` as 512px JPEGs. Walls in the GLB just need a material whose name contains "floral"; the site cuts and re-papers them by room at load.
 - `mobile.css`: phone layout (portrait first). Loaded last, so phone-specific changes go here; desktop is not affected.
 - `app.js`: controls, directory text, interaction positions, room shortcuts and puzzle state.
 - `babylon-world.js`: active 3D renderer, model loading, collision checks, mirror, lights and procedural objects.
 - `radio.js`: audio.
-- `assets/apartment.glb`: visible environment.
-- `assets/collision.json`: separate wall/obstacle boxes and walkable floor bounds.
+- `assets/apartment.glb`: visible environment, including the wallpapers. Each wall object has one material slot per room it faces; materials are named `Wallpaper / <room> / <paper>` (the original rose lattice is `Faded floral paper / packed`). To repaper a wall in Blender, change the material on its faces and re-export. Wallpaper source images are in `assets/wallpapers/`.
+- `assets/collision.json`: separate wall/obstacle boxes and walkable floor bounds. This is not part of the GLB. `Bedroom_Wall_00` was added for the hidden bedroom's partition (Blender object `Vestibule_East_00.001`), which previously had no collision.
+- `tools/paper_glb.py`: the one-off script that baked the wallpapers into the GLB. Not needed for normal Blender edits.
 
 Other scene scripts are retained from the supplied project; the active entry point is app.js, which imports babylon-world.js. Do not switch engines to update the model.
 
