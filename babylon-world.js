@@ -1,4 +1,4 @@
-import { paperWalls, paperFor } from './wallpapers.js?v=paper-20261005';
+import { paperWalls, paperFor } from './wallpapers.js?v=bedroom-20261005';
 const B=window.BABYLON;
 export class ApartmentWorld {
  constructor(canvas,map,objects,touch){
@@ -19,7 +19,7 @@ export class ApartmentWorld {
   const moon=B.MeshBuilder.CreateSphere('distant moon',{diameter:3.6,segments:12},this.scene);moon.position.set(-17,23,-37);const m=new B.StandardMaterial('moon ivory',this.scene);m.disableLighting=true;m.emissiveColor=B.Color3.FromHexString('#d9bccf');moon.material=m;moon.isPickable=false;moon.freezeWorldMatrix();
  }
  async load(){try{
-  const [gl,data]=await Promise.all([B.SceneLoader.ImportMeshAsync(null,'assets/','apartment.glb',this.scene,e=>dispatchEvent(new CustomEvent('dw-progress',{detail:{stage:'model',fraction:e.lengthComputable&&e.total?e.loaded/e.total:Math.min(.99,e.loaded/1606964)}}))),fetch('assets/collision.json').then(r=>{if(!r.ok)throw Error('collision');return r.json()})]);this.boxes=data.boxes;this.floors=data.floors;
+  const [gl,data]=await Promise.all([B.SceneLoader.ImportMeshAsync(null,'assets/','apartment.glb',this.scene,e=>dispatchEvent(new CustomEvent('dw-progress',{detail:{stage:'model',fraction:e.lengthComputable&&e.total?e.loaded/e.total:Math.min(.99,e.loaded/1606964)}}))),fetch('assets/collision.json?v=bedroom-20261005').then(r=>{if(!r.ok)throw Error('collision');return r.json()})]);this.boxes=data.boxes;this.floors=data.floors;
   const materials=new Map(),groups=new Map(),walls=[];this.wallMats=[];
   for(const o of gl.meshes){if(!o.getTotalVertices())continue;o.computeWorldMatrix(true);o.layerMask=1;const src=o.material;
    if(src){if(!materials.has(src)){const m=new B.StandardMaterial(src.name,this.scene);m.diffuseColor=src.albedoColor?.clone()||B.Color3.White();m.diffuseTexture=src.albedoTexture||null;m.emissiveColor=src.emissiveColor?.clone()||B.Color3.Black();m.emissiveTexture=src.emissiveTexture||null;m.specularColor=B.Color3.Black();m.backFaceCulling=src.backFaceCulling;m.maxSimultaneousLights=5;materials.set(src,m);if(m.diffuseTexture)m.diffuseTexture.anisotropicFilteringLevel=2;if(src.name.includes('floral'))this.wallMats.push(m)}o.material=materials.get(src)}

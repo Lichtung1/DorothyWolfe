@@ -7,28 +7,29 @@
 
 export const PAPERS = {
   vestibule: null,                                   // original rose lattice: the first thing visitors see
-  passage:   'assets/wallpapers/pink-stripe.jpg',    // the hallway loop around the courtyard
+  passage:   'assets/wallpapers/pink-damask.jpg',    // the hallway loop: a quiet cousin of the original
   courtyard: 'assets/wallpapers/heart-damask.jpg',   // under the stars: the heart of the apartment
   textile:   'assets/wallpapers/ivory-cross-stitch.jpg', // cross-stitch as pixels, beside the wardrobe
   atelier:   'assets/wallpapers/blue-cross-stitch.jpg',  // the computer room: CRT blue in thread
   archive:   'assets/wallpapers/plum-tulips.jpg',    // darker and bookish for the library
   fitting:   'assets/wallpapers/rose-floral.jpg',    // big romantic blooms around the mirror
   gallery:   'assets/wallpapers/sage-fern.jpg',      // a garden-room gallery with the potted plants
+  bedroom:   null,                                   // the hidden bedroom behind the secret wall: original rose lattice, echoing the entrance
 };
-// Spare paper, not currently used: assets/wallpapers/pink-damask.jpg
+// Spare paper, not currently used: assets/wallpapers/pink-stripe.jpg
 
 // Room of a point on the floor plan, in Babylon world coordinates (x, z).
 // Same boundaries as the room names shown in the corner of the screen.
 export function roomAt(x, z) {
   if (z > 5.8) return 'vestibule';
-  if (z < -5.8) return 'gallery';
+  if (z < -5.8) return x < -1.97 ? 'bedroom' : 'gallery'; // the hidden bedroom: west of its partition wall
   if (x < -5.3) return z < -1.6 ? 'textile' : 'atelier';
   if (x > 5.3) return z < -0.1 ? 'archive' : 'fitting';
   if (Math.abs(x) < 3.1 && Math.abs(z) < 3.6) return 'courtyard';
   return 'passage';
 }
 // Lines where one room's paper meets another's; wall faces are cut along these.
-const CUT_X = [-5.3, -3.1, -2.2, 2.2, 3.1, 5.3];
+const CUT_X = [-5.3, -3.1, -2.2, -1.97, 2.2, 3.1, 5.3];
 const CUT_Z = [-5.8, -3.6, -1.6, -0.1, 3.6, 5.8];
 const PROBE = 0.3; // how far in front of a wall face we look to decide which room it faces
 
