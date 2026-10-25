@@ -102,7 +102,7 @@ body:not(.started) #interact{visibility:hidden}
 
 /* Centered welcome sits over the wallpaper: a soft ink glow keeps the small text readable. */
 @media (max-width:760px) and (orientation:portrait){
-  .welcome{background:radial-gradient(ellipse 75% 42% at 50% 50%,#160e18c4 0%,#160e1866 55%,transparent 80%)}
+  .welcome{background:radial-gradient(ellipse 75% 42% at 50% 50%,#131214c4 0%,#13121466 55%,transparent 80%)}
 }
 
 /* Joystick side. Right by default (most people steer with the right thumb); body.hand-left flips it.
@@ -110,9 +110,9 @@ body:not(.started) #interact{visibility:hidden}
 #swap-hand{display:none}
 @media (pointer:coarse),(max-width:760px) and (orientation:portrait){
   #swap-hand{display:grid;place-items:center;position:fixed;z-index:3;width:40px;height:40px;min-width:40px;min-height:40px;padding:0;
-    font-size:20px;line-height:1;color:#ffd2e7;background:#1b111cb0;border:1px solid #ffb9dc8c;border-radius:50%;
+    font-size:20px;line-height:1;color:#ffd2e7;background:#171617b0;border:1px solid #ffb9dc8c;border-radius:50%;
     bottom:calc(var(--dock-h,66px) + 4px)}
-  #swap-hand:hover{background:#1b111cb0;color:#fff}
+  #swap-hand:hover{background:#171617b0;color:#fff}
   #swap-hand:active{background:var(--pink);color:var(--ink)}
   body:not(.started) #swap-hand,.terminal-open #swap-hand{visibility:hidden}
 
