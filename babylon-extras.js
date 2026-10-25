@@ -48,3 +48,38 @@ export function buildLightPools(scene, pools, name = 'light pools') {
   m.material = mat; m.isPickable = false; m.freezeWorldMatrix();
   return m;
 }
+// Texture atlas: packs several images into one grid texture so many pictures cost ONE draw call.
+// Layout is fixed up front (cell index = position in the list), so meshes can be UV-mapped immediately;
+// the texture fills in once the images have loaded.
+//   const atlas = makeAtlas(scene, urls, { cellW: 256, cellH: 512, cols: 4, alpha: true });
+//   atlas.mapUVs(mesh, index)   // squeeze a 0..1-UV mesh into that cell (call before merging)
+//   material.diffuseTexture = atlas.texture  (set automatically via atlas.onReady)
+export function makeAtlas(scene, urls, { cellW = 256, cellH = 256, cols = 4, alpha = false } = {}) {
+  const rows = Math.ceil(urls.length / cols), W = cellW * cols, H = cellH * rows, pad = 1;
+  const rect = i => {
+    const c = i % cols, r = Math.floor(i / cols);
+    return [(c * cellW + pad) / W, 1 - ((r + 1) * cellH - pad) / H, ((c + 1) * cellW - pad) / W, 1 - (r * cellH + pad) / H];
+  };
+  const atlas = {
+    W, H, rect, texture: null, ready: false, waiting: [],
+    mapUVs(mesh, i) {
+      const [u0, v0, u1, v1] = rect(i), uv = mesh.getVerticesData('uv');
+      for (let k = 0; k < uv.length; k += 2) { uv[k] = u0 + uv[k] * (u1 - u0); uv[k + 1] = v0 + uv[k + 1] * (v1 - v0); }
+      mesh.setVerticesData('uv', uv);
+    },
+    onReady(fn) { if (atlas.ready) fn(atlas.texture); else atlas.waiting.push(fn); },
+  };
+  const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+  const g = canvas.getContext('2d'); g.imageSmoothingEnabled = true;
+  Promise.all(urls.map((u, i) => new Promise(res => {
+    if (!u) return res();
+    const img = new Image();
+    img.onload = () => { const c = i % cols, r = Math.floor(i / cols); g.drawImage(img, c * cellW, r * cellH, cellW, cellH); res(); };
+    img.onerror = () => { console.warn('atlas image missing', u); res(); };
+    img.src = u;
+  }))).then(() => {
+    const t = new Texture(canvas.toDataURL('image/png'), scene, false, true); t.hasAlpha = alpha;
+    atlas.texture = t; atlas.ready = true; atlas.waiting.forEach(fn => fn(t));
+  });
+  return atlas;
+}

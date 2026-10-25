@@ -20,6 +20,11 @@ export const PS1 = {
   warp: 0,         // affine texture warping (textures slide around as you turn). 0 = off, .3 subtle, 1 = full PS1 (seasick)
 };
 
+// Lace lining: instead of the see-through gaps in the lace being fully empty, a dithered dark 'silk lining' fills a
+// share of them (PS1 'screen-door' transparency: no sorting problems, no extra cost). Per material: m._dwLine =
+// { o: 0..1 coverage, c: [r,g,b], seed }. LINING.enabled / LINING.factor scale everything (Dream mode = sheer).
+export const LINING = { enabled: true, factor: 1 };
+
 const VERT_DEF = '\nuniform vec4 dwPs1;\n';
 const VERT_END = `
 if (dwPs1.x > 0. && gl_Position.w > .5) { // snap the projected vertex to a coarse pixel grid (not vertices behind/near the camera: big floors would tear)
@@ -29,9 +34,15 @@ if (dwPs1.x > 0. && gl_Position.w > .5) { // snap the projected vertex to a coar
 `;
 const FRAG_DEF = `
 uniform vec4 dwPs1;
+uniform vec4 dwLine;
+uniform float dwLineSeed;
 float dwBayer2(vec2 a) { a = floor(a); return fract(a.x / 2. + a.y * a.y * .75); }
 float dwBayer4(vec2 a) { return dwBayer2(.5 * a) * .25 + dwBayer2(a); }
 `;
+const LINE_TEST = `if (baseColor.a<alphaCutOff) {
+  if (dwLine.x <= 0. || dwBayer4(gl_FragCoord.xy + vec2(dwLineSeed, dwLineSeed * 2.)) >= dwLine.x) discard;
+  baseColor = vec4(dwLine.yzw, 1.);
+}`;
 const FRAG_END = `
 if (dwPs1.z > 0.) { // quantise to PS1 colour depth, with an ordered dither pattern
   float lv = dwPs1.z;
@@ -66,13 +77,14 @@ export function installPS1(scene, engine) {
     m._dwPs1 = true;
     const prev = m.customShaderNameResolve;
     m.customShaderNameResolve = (name, uniforms, ubos, samplers, defines, attribs, opts) => {
-      if (!uniforms.includes('dwPs1')) uniforms.push('dwPs1', 'dwAff');
+      if (!uniforms.includes('dwPs1')) uniforms.push('dwPs1', 'dwAff', 'dwLine', 'dwLineSeed');
       if (opts) {
         const before = opts.processFinalCode;
         opts.processFinalCode = (type, code) => {
           if (before) code = before(type, code);
           if (type === 'vertex') return affineVertex(code.replace('#define CUSTOM_VERTEX_DEFINITIONS', VERT_DEF).replace('#define CUSTOM_VERTEX_MAIN_END', VERT_END));
-          return affineFragment(code.replace('#define CUSTOM_FRAGMENT_DEFINITIONS', FRAG_DEF).replace('#define CUSTOM_FRAGMENT_BEFORE_FRAGCOLOR', FRAG_END));
+          return affineFragment(code.replace('#define CUSTOM_FRAGMENT_DEFINITIONS', FRAG_DEF).replace('#define CUSTOM_FRAGMENT_BEFORE_FRAGCOLOR', FRAG_END)
+            .replace(/if \(baseColor\.a<alphaCutOff\)\s*discard;/, LINE_TEST));
         };
       }
       return prev ? prev(name, uniforms, ubos, samplers, defines, attribs, opts) : name;
@@ -81,6 +93,8 @@ export function installPS1(scene, engine) {
       const e = m.getEffect(); if (!e) return;
       const on = PS1.enabled, lv = Math.pow(2, PS1.colorBits) - 1;
       e.setFloat('dwAff', on ? PS1.warp : 0);
+      const L = m._dwLine, lo = L && LINING.enabled ? L.o * LINING.factor : 0;
+      e.setFloat4('dwLine', lo, L ? L.c[0] : 0, L ? L.c[1] : 0, L ? L.c[2] : 0); e.setFloat('dwLineSeed', L ? L.seed : 0);
       e.setFloat4('dwPs1', on && PS1.wobble > 0 ? state.snap[0] : 0, on ? state.snap[1] : 0, on && PS1.colorBits < 8 ? lv : 0, PS1.dither);
     });
   };

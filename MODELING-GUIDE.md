@@ -58,7 +58,7 @@ Normal maps, roughness, metalness and AO maps are **dropped**. So:
 | Total download (GLBs + textures) | ~8 MB | 12 MB |
 | Texture size, normal prop | 512 × 512 | 1024 × 1024 for 2–3 hero pieces only |
 
-The scene currently sits at about **50k triangles on a phone** (53k on desktop): roughly 23k of greybox, about 3k of PS1 forest and 11k of apartment. Inside the lace house you're drawing ~65–75 meshes because you can see through the walls, so **merging small props per room** matters more than triangle count now.
+The scene currently sits at about **50k triangles on a phone** (53k on desktop): roughly 23k of greybox, about 3k of PS1 forest and 11k of apartment. Inside the lace house almost everything is drawn from everywhere (you can see through the walls), so **the number of separate objects (draw calls) matters more than triangle count**. Aim to keep the whole house under ~60 draw calls (check with the `fps` terminal command): give small props in a room one shared texture, and join objects that never move into one mesh before export.
 
 **Habits that help most:** one material per prop, or better one **shared texture atlas per room** for small things; reuse a mesh rather than making unique copies (four scissors, used eight times); JPG inside the GLB for colour textures and PNG only where you need alpha; no subdivision modifiers left live on export.
 
@@ -205,6 +205,9 @@ Check each asset's licence; **CC0** needs no credit, **CC-BY** needs a credit li
 | PS1 look (resolution, wobble, texture warp, colour depth, dither, texture sampling) | `PS1` in `ps1.js`; terminal command `ps1` toggles it |
 | Sound levels and positions (wind, fire, TV, shrine, phone) | `AMBIENCE` and `SOURCES` in `ambience.js` |
 | Opal glass shimmer | `OPAL` in `opal.js` |
+| Lace lining (how see-through each wall is) | `LACE_LINING` in `decor.js`; terminal `lining` |
+| Walking speed presets | `SPEEDS` in `app.js`; terminal `speed` |
+| Check performance on a phone | terminal `fps` |
 | Snow amount, speed, flake size | `SNOW` in `snow.js`; terminal `snow` toggles |
 | Arrival glide (start on the road) | `ARRIVAL` in `app.js` (`ms: 0` = start inside) |
 | Garment rail positions | `RAIL_SLOTS` in `garments.js` |

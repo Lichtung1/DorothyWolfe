@@ -1,7 +1,8 @@
 // garments.js: hangs Opal's garments on the gallery rails, from assets/garments/garments.json.
 // Each garment is a picture card hanging from a hook, swaying very slightly. Add or replace pieces by editing the
 // JSON and dropping images into assets/garments/ (see the README there). The first RAIL_SLOTS.length pieces hang.
-import { Texture } from './babylon-extras.js';
+// All cards share one atlas texture and one mesh (one draw call); the sway is done by moving their corners.
+import { makeAtlas } from './babylon-extras.js';
 const B = window.BABYLON;
 
 // Hook positions on the two gallery rails (rail top is at 1.7 m). Cards face into the room (+z).
@@ -25,25 +26,43 @@ function imageSize(url) {
 }
 
 export async function hangGarments(scene, list, { reduced } = {}) {
-  const cards = [];
-  for (let i = 0; i < Math.min(list.length, RAIL_SLOTS.length); i++) {
-    const g = list[i], url = 'assets/garments/' + g.image, size = await imageSize(url);
-    if (!size) { console.warn('missing garment image', url); continue; }
-    const w = Math.min(MAX_W, CARD_H * size[0] / size[1]);
-    const card = B.MeshBuilder.CreatePlane('garment ' + (g.name || i), { width: w, height: CARD_H }, scene);
-    card.bakeTransformIntoVertices(B.Matrix.Translation(0, -CARD_H / 2, 0)); // pivot at the hook
-    const [x, z] = RAIL_SLOTS[i];
-    card.position.set(x, HOOK_Y, z + .015 * (i % 3 - 1)); // tiny depth offsets so overlapping cards never flicker
-    card.rotation.y = Math.PI;
-    const m = new B.StandardMaterial('garment ' + i, scene);
-    m.diffuseTexture = new Texture(url, scene, false, true); m.diffuseTexture.hasAlpha = /\.png$/i.test(g.image);
-    m.specularColor = B.Color3.Black(); m.emissiveColor = B.Color3.FromHexString('#3a3438'); m.backFaceCulling = false;
-    card.material = m; card.isPickable = false;
-    cards.push({ card, ph: i * 1.7 });
-  }
+  const hung = list.slice(0, RAIL_SLOTS.length).map(g => 'assets/garments/' + g.image);
+  const sizes = await Promise.all(hung.map(imageSize));
+  const atlas = makeAtlas(scene, hung, { cellW: 256, cellH: 512, cols: 4, alpha: true });
+  const cards = [], pos = [], uv = [], idx = [];
+  hung.forEach((url, i) => {
+    if (!sizes[i]) { console.warn('missing garment image', url); return; }
+    const w = Math.min(MAX_W, CARD_H * sizes[i][0] / sizes[i][1]), [x, z] = RAIL_SLOTS[i];
+    const [u0, v0, u1, v1] = atlas.rect(i), k = cards.length * 4;
+    cards.push({ x, z: z + .015 * (i % 3 - 1), w, ph: i * 1.7 }); // tiny depth offsets so overlapping cards never flicker
+    pos.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    uv.push(u0, v1, u1, v1, u1, v0, u0, v0);          // top-left, top-right, bottom-right, bottom-left
+    idx.push(k, k + 2, k + 1, k, k + 3, k + 2);
+  });
+  if (!cards.length) return { cards, tick: () => {} };
+  const mesh = new B.Mesh('garments', scene), vd = new B.VertexData();
+  vd.positions = pos; vd.uvs = uv; vd.indices = idx; vd.normals = pos.map((_, j) => j % 3 === 2 ? 1 : 0); vd.applyToMesh(mesh, true);
+  const m = new B.StandardMaterial('garments', scene);
+  m.specularColor = B.Color3.Black(); m.emissiveColor = B.Color3.FromHexString('#3a3438'); m.backFaceCulling = false;
+  mesh.material = m; mesh.isPickable = false; mesh.alwaysSelectAsActiveMesh = true; mesh.setEnabled(false);
+  atlas.onReady(t => { m.diffuseTexture = t; mesh.setEnabled(true); });
+  const P = new Float32Array(cards.length * 12);
+  const place = (t, still) => {
+    cards.forEach((c, i) => {
+      const rz = still ? 0 : Math.sin(t * .0011 + c.ph) * .025, rx = still ? 0 : Math.sin(t * .0008 + c.ph * 2) * .02;
+      const cz = Math.cos(rz), sz = Math.sin(rz), cx = Math.cos(rx), sx = Math.sin(rx);
+      [[-c.w / 2, 0], [c.w / 2, 0], [c.w / 2, -CARD_H], [-c.w / 2, -CARD_H]].forEach(([lx, ly], j) => {
+        const x1 = lx * cz - ly * sz, y1 = lx * sz + ly * cz, o = i * 12 + j * 3;
+        P[o] = c.x + x1; P[o + 1] = HOOK_Y + y1 * cx; P[o + 2] = c.z + y1 * sx;
+      });
+    });
+    mesh.updateVerticesData('position', P);
+  };
+  place(0, true);
+  let last = 0;
   const tick = (t, red, p) => {
-    if (red || reduced || !cards.length || (p && p.y > -2)) return; // only sway when you're in the gallery
-    for (const c of cards) { c.card.rotation.z = Math.sin(t * .0011 + c.ph) * .025; c.card.rotation.x = Math.sin(t * .0008 + c.ph * 2) * .02; }
+    if (red || reduced || (p && p.y > -2) || t - last < 33) return; // only sway when you're in the gallery
+    last = t; place(t, false);
   };
   return { cards, tick };
 }

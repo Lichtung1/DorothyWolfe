@@ -7,7 +7,7 @@
 //
 // Coordinates: x/z are the same numbers app.js uses for objects (x across, z = app.js `y`). y is height.
 // ry: which way the front faces. 0 = +z (toward the front door), PI = -z, PI/2 = +x (east), -PI/2 = -x (west).
-import { Texture, ground, node, canvasTexture, buildLightPools } from './babylon-extras.js';
+import { Texture, ground, node, canvasTexture, buildLightPools, makeAtlas } from './babylon-extras.js';
 const B = window.BABYLON;
 const PI = Math.PI;
 
@@ -37,6 +37,15 @@ export const LACE_SWAP = {
   'plum tulips': 'lace-archive', 'sage fern': 'lace-gallery', 'blue cross-stitch': 'lace-atelier',
   'ivory cross-stitch': 'lace-textile', 'rose floral': 'lace-fitting', 'heart damask': 'lace-courtyard',
   'pink damask': 'lace-passage', 'Faded floral paper': 'lace-rose',
+};
+// LACE LINING: how much of the see-through gap behind the lace is filled with a dark 'silk lining' (0 = sheer, 1 = solid).
+// Matched against the Blender material names, first match wins. Terminal command `lining` toggles it; Dream mode goes sheer.
+export const LACE_LINING = {
+  rules: [['Faded floral paper', .45]],  // entrance, bedroom and the outside of the house: lighter, so the cottage glows
+  interior: .7,                          // every other room's walls
+  secretWall: .3,                        // the hidden passage wall: the sheerest, so you can peek into the bedroom
+  color: '#231c27',                      // the lining (a dusky plum-black, darker than the lace)
+  dream: .3,                             // Dream mode multiplies the lining by this
 };
 // Flat material colour overrides (Blender material name -> hex). Delete a line to keep the GLB colour.
 export const MATERIAL_TINT = {
@@ -464,25 +473,30 @@ export function buildDecor(scene, { touch } = {}) {
     if (unlit) { m.disableLighting = true; m.emissiveColor = B.Color3.White(); } // unlit: colour = emissive x texture
     m.backFaceCulling = false; m.maxSimultaneousLights = 5; return m;
   };
-  const byTex = new Map(), group = (name, mesh) => { if (!byTex.has(name)) byTex.set(name, []); byTex.get(name).push(mesh); };
+  // All rugs share one atlas texture and one mesh (one draw call instead of ~13: the lace walls hide nothing,
+  // so everything in the house is drawn from everywhere and every draw call counts on phones).
+  const rugNames = [...new Set([...FLOOR_RUGS.map(r => r[0]), ...WALL_RUGS.map(r => r[0])])];
+  const rugAtlas = makeAtlas(scene, rugNames.map(n => 'assets/textures/' + n + '.png'), { cellW: 256, cellH: 512, cols: 4 });
+  const rugParts = [];
   for (const [name, x, z, long, short, alongX, turn = 0, layer = 0] of FLOOR_RUGS) {
     const g = ground('rug', { width: short, height: long }, scene);
-    g.position.set(x, .012 + layer * .005, z); g.rotation.y = (alongX ? PI / 2 : 0) + turn; group(name + '|' + layer, g);
+    g.position.set(x, .012 + layer * .008, z); g.rotation.y = (alongX ? PI / 2 : 0) + turn; rugAtlas.mapUVs(g, rugNames.indexOf(name)); rugParts.push(g);
   }
   for (const [name, x, y, z, w, h, ry] of WALL_RUGS) {
     const p = B.MeshBuilder.CreatePlane('wall rug', { width: w, height: h }, scene);
-    p.position.set(x, y, z); p.rotation.y = ry; group(name + '|w', p);
+    p.position.set(x, y, z); p.rotation.y = ry; rugAtlas.mapUVs(p, rugNames.indexOf(name)); rugParts.push(p);
+  }
+  {
+    const rugs = B.Mesh.MergeMeshes(rugParts, true, true); rugs.name = 'rugs';
+    const m = new B.StandardMaterial('rugs', scene); m.specularColor = B.Color3.Black(); m.backFaceCulling = false; m.maxSimultaneousLights = 5; m.zOffset = -2;
+    rugs.material = m; rugs.isPickable = false; rugs.freezeWorldMatrix(); rugs.setEnabled(false); out.meshes.push(rugs);
+    rugAtlas.onReady(t => { m.diffuseTexture = t; rugs.setEnabled(true); });
   }
   for (const t of out.tapestries) { // half-woven piece on the loom uses the black wall-rug pattern
     const p = B.MeshBuilder.CreatePlane('tapestry', { width: t.w, height: t.h }, scene);
     p.position.set(...t.p); p.rotation.y = t.ry;
     const m = flatMat('rug-wall-black'); m.diffuseTexture = new Texture('assets/textures/rug-wall-black.png', scene, false, true); m.diffuseTexture.vScale = .6;
     p.material = m; p.isPickable = false; p.freezeWorldMatrix(); out.meshes.push(p);
-  }
-  for (const [key, list] of byTex) {
-    const [name, layer] = key.split('|'), m = list.length > 1 ? B.Mesh.MergeMeshes(list, true, true) : list[0];
-    // depth bias so rugs never flicker against the floor (or each other) when the PS1 wobble moves vertices
-    m.name = name; m.material = flatMat(name); m.material.zOffset = layer === 'w' ? -1 : -2 - 2 * Number(layer); m.isPickable = false; m.freezeWorldMatrix(); out.meshes.push(m);
   }
   // polar bear skin
   const bear = ground('polar bear rug', { width: 1.05, height: 1.55 }, scene);
@@ -542,11 +556,18 @@ export function buildDecor(scene, { touch } = {}) {
     };
     wave(0, true); out.tick.push(wave);
   }
-  for (const ph of out.photos) {
-    const pl = B.MeshBuilder.CreatePlane('photo', { width: ph.w, height: ph.h }, scene);
-    pl.position.set(...ph.p); pl.rotation.y = ph.ry + PI; // plane faces -z; turn it to face out of the wall
-    const m = new B.StandardMaterial(ph.file, scene); m.diffuseTexture = new Texture('assets/photos/' + ph.file + '.jpg', scene, false, true);
-    m.specularColor = B.Color3.Black(); m.emissiveColor = B.Color3.FromHexString('#2a2629'); m.zOffset = -1; pl.material = m; pl.isPickable = false; pl.freezeWorldMatrix();
+  if (out.photos.length) { // all the old photographs share one atlas texture and one mesh
+    const files = [...new Set(out.photos.map(ph => ph.file))];
+    const atlas = makeAtlas(scene, files.map(f => 'assets/photos/' + f + '.jpg'), { cellW: 256, cellH: 256, cols: 4 });
+    const parts = out.photos.map(ph => {
+      const pl = B.MeshBuilder.CreatePlane('photo', { width: ph.w, height: ph.h }, scene);
+      pl.position.set(...ph.p); pl.rotation.y = ph.ry + PI; // plane faces -z; turn it to face out of the wall
+      atlas.mapUVs(pl, files.indexOf(ph.file)); return pl;
+    });
+    const photos = B.Mesh.MergeMeshes(parts, true, true); photos.name = 'photos';
+    const m = new B.StandardMaterial('photos', scene); m.specularColor = B.Color3.Black(); m.emissiveColor = B.Color3.FromHexString('#2a2629'); m.zOffset = -1;
+    photos.material = m; photos.isPickable = false; photos.freezeWorldMatrix(); photos.setEnabled(false);
+    atlas.onReady(t => { m.diffuseTexture = t; photos.setEnabled(true); });
   }
 
   // ---- PS1 'blob lights' on the floor: candle clusters and coloured light falling through the stained glass

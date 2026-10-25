@@ -1,5 +1,12 @@
 # Dorothy Wolfe: GitHub Pages
 
+## What's new (25 Oct 2026)
+
+- **Lined lace**: the gaps behind the lace are partly filled with a dark dithered "silk lining" (PS1 screen-door transparency), so rooms read as rooms but you still catch glimpses through. Interior walls are about 70% lined, the entrance, bedroom and outside of the house about 45%, and the secret passage wall about 30% (the peek into the bedroom). Dream mode goes sheer. `LACE_LINING` in `decor.js`; terminal `lining` toggles (remembered).
+- **Faster on phones**: because the lace hides nothing, the whole house is drawn from everywhere, so every separate object counts. Rugs, photos and garments now each share one texture (atlases), and the seven floating pearls are one mesh: about 74 → 48 draw calls from the entrance. The mirror only re-renders while it's on screen and near (it was redrawing the house every few frames from almost anywhere).
+- **Snappier controls**: three presets, defaulting to **normal** (2.0 m/s, quicker turning, less smoothing). `slow` is Opal's earlier setting and `fast` is close to the original. Terminal `speed` cycles them (remembered). Movement no longer slows down when the frame rate drops.
+- **Terminal `fps`**: frame rate, draw calls and render size overlay, for testing on real phones.
+
 ## What's new (24 Oct 2026, round 8)
 
 - **Opal's garments on the gallery rails** (`garments.js`): picture cards hanging from the rails, swaying slightly, replacing the flat pink swatches. Walk up to a rail ("the collection") or open Rooms → Collections to see them all in a grid. Add real pieces by dropping photos into `assets/garments/` and listing them in `garments.json` (see the README in that folder). Six pixel-art placeholders are there for now (`tools/make_garments.py`).
