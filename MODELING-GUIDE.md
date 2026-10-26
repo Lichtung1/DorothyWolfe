@@ -1,4 +1,4 @@
-# Modeling guide (24 Oct 2026 update)
+# Modeling guide (25 Oct 2026 update)
 
 Everything Dorothy asked for is in the scene now as **greybox** stand-ins: simple shapes in her palette, at the right size and in the right place, with collision. Replace them one at a time. When a real model is ready, nothing else in the code needs to change.
 
@@ -14,14 +14,49 @@ The engine now renders like a PS1: low resolution (256 lines), point-sampled tex
 - **Palette:** black, silver, light pink, and hot pink only as a spark (a decal, a jewel, a thread).
 - Reference mood: *LSD: Dream Emulator*, *Silent Hill* (fog), *Echo Night*, *Mizzurna Falls*, and the *Haunted PS1* demo discs.
 
-### What to model first (most visible → least)
+## The make-list (most visible first)
 
-1. **Tree cards** (paint, not model): birch and spruce PNGs, and the two treeline strips. They fill most of the screen outside.
-2. **Iron bed + canopy**, **samovar tea table**, **fireplace**: the three cosiest close-ups.
-3. **Shrine statue + chapel**: the end-of-road payoff.
-4. **Treadle sewing machine**, **clawfoot tub**, **loom**, **scissor wall**: the textile room.
-5. **House roof/facade**, **box TV**, **rotary phone**, **bookshelves**, **mirror frame**.
-6. Small stuff (ashtray, magazines, candles, cups) last. It reads fine as greybox at 256 lines.
+Everything below already exists in the game as a greybox or placeholder, at the right size and place. Tick them off as your versions go in. The prop name (in `PROPS` in `decor.js`) is where its filename goes. Triangle counts are PS1 budgets.
+
+**1. Seen constantly**
+- [ ] **Birch tree card ×2, spruce tree card ×2** (paint, not model). `assets/textures/tree-*.png`, 48×128 drawn, saved at 4×. They fill most of the screen outside.
+- [ ] **Treeline strips ×2** (paint). `treeline-near.png`, `treeline-far.png`; must tile left to right.
+- [ ] **Soviet cast-iron radiator**: `radiator_*` (7 placed). Model **one** 8-section MS-140 style radiator (~0.75 × 0.14 × 0.75 m, 200–400 tris), silver "serebryanka" paint with darker grime between the fins, a pipe and valve on one side. Put the same .glb on all seven.
+- [ ] **Fireplace**: `fireplace` (1.9 × 0.62 × 1.2 m, 1.5–3k). Leave the firebox empty; the pink fire is code.
+- [ ] **Samovar + tea table**: `samovar_tea_table` (3–5k total). Can be split into two models.
+- [ ] **Iron bed**: `iron_bed` (1.06 × 2.0 × 1.15 m, 1.5–2.5k). Iron curls as alpha-clipped cards.
+
+**2. The rooms' hero pieces**
+- [ ] **Shrine statue** (veiled, Madonna-like), 3–6k: find a scan, decimate, set `SHRINE.statueModel` in `shrine.js`.
+- [ ] **Shrine chapel** (white box, dark roof, little pink onion dome), 1.5–3k: `SHRINE.chapelModel`.
+- [ ] **Treadle sewing machine**: `treadle_sewing_machine` (2.5–4k); reuse its head for `hand_sewing_machine`.
+- [ ] **Clawfoot tub**: `clawfoot_tub` (2–3k). Keep the pink dye surface a separate flat face.
+- [ ] **Tapestry loom**: `tapestry_loom` (2–3k). Warp threads as one alpha-clipped plane.
+- [ ] **Scissor wall**: `scissor_wall`. Model 3–4 scissors (150–300 tris each) and reuse them.
+- [ ] **Box TV**: `box_tv` (1–1.5k). Leave the screen opening where the greybox's is; the static is code.
+- [ ] **Rotary phone + telephone table**: `telephone_table` (1.5–2k).
+- [ ] **Mirror frame**: `mirror_frame` (300–600). Ornate silver around a 1 × 2 m glass.
+- [ ] **House roof / outside walls** (2–5k): the road view of the cottage.
+
+**3. Furniture and fittings**
+- [ ] **Bookshelves ×2**: `bookshelf_1`, `bookshelf_2` (300–600 each), with book blocks on one spine texture.
+- [ ] **Drawing table + stool**: `drawing_table` (1.5–2k).
+- [ ] **Bedroom window frame**: `bedroom_window` (300–600). The curtains are code.
+- [ ] **Picture frames, 2 styles** (silver gilt, thin black): the art and photo frames are code-drawn for now. If you model them, make one of each at 1 × 1 m and tell me; I'll scale them per picture without stretching the moulding.
+- [ ] **Candelabra**, **candle cluster**: candles without flames (flames are code).
+- [ ] **Polar bear head**: `polar_bear_rug` (1.5–2.5k); the flat skin stays a texture.
+- [ ] **Lantern post** ×1 model, reused along the road (200–400).
+
+**4. Small stuff (reads fine as greybox at 256 lines)**
+- [ ] Ashtray + cigarettes, magazines (one cover atlas), clothesline + cloths, teacups.
+
+**2D art (no modelling)**
+- [ ] **Wall art ×21**: keep full-quality originals in `assets/art-source/`, then run `python3 tools/import_art.py --fry` to make the game versions in `assets/art/` (slot list in `assets/art/README.txt`).
+- [ ] **Old photographs ×7**: `assets/photos/photo-1..7.jpg`. Real family photos of great-grandmother Dorothy, ideally.
+- [ ] **Garments**: photos of Opal's pieces in `assets/garments/` plus `garments.json`.
+- [ ] **Stained glass bakes**: `tools/import_glass.py`.
+- [x] Lace walls (the refined pack is in). Swap any time via `assets/lace-source/`.
+- [x] Rugs: pixel-art kazak, medallion and two runners (plus colourways) on the floors, and four worn lace carpets, about 40 placed, all on the floors (only tapestries hang on the walls). Replace any `rug-*.png` with a better one at the same name.
 
 ## How a model replaces a greybox
 
@@ -62,7 +97,7 @@ The scene currently sits at about **50k triangles on a phone** (53k on desktop):
 
 **Habits that help most:** one material per prop, or better one **shared texture atlas per room** for small things; reuse a mesh rather than making unique copies (four scissors, used eight times); JPG inside the GLB for colour textures and PNG only where you need alpha; no subdivision modifiers left live on export.
 
-## The list
+## Details by room
 
 Sizes are the greybox's, so build to these numbers or update `solid` afterwards.
 
@@ -72,7 +107,7 @@ Sizes are the greybox's, so build to these numbers or update `solid` afterwards.
 |---|---|---|---|---|
 | `clawfoot_tub` | 1.55 × 0.8 × 0.65 | 2–3k | 512 | Black outside, white enamel rim, silver claw feet. Keep the pink "dye" surface as a separate flat face, slightly emissive. |
 | `clothesline` | 3.96 long, at 2.2 m | 300–600 | 512 atlas | Thin line, wooden pegs, 4–6 dyed cloths as **single-sided planes** (Alpha Clip for frayed edges). Cloths in black, silver, light pink and one hot pink. |
-| `tapestry_loom` | 1.32 × 0.55 × 1.85 | 2–3k | 512 + tapestry | Upright frame loom. Warp threads as **one textured plane with Alpha Clip**, not hundreds of cylinders. The half-woven tapestry can reuse `assets/textures/rug-wall-black.png`. It replaces the old clothing rail, and it's the "Collections" interaction now. |
+| `tapestry_loom` | 1.32 × 0.55 × 1.85 | 2–3k | 512 + tapestry | Upright frame loom. Warp threads as **one textured plane with Alpha Clip**, not hundreds of cylinders. The half-woven tapestry uses `assets/art/tapestry-leaves.png`. It replaces the old clothing rail, and it's the "Collections" interaction now. |
 | `treadle_sewing_machine` | 1.0 × 0.5 × 1.1 | 2.5–4k | 1024 (hero) | Cast-iron treadle base and a Singer-style head. The decals can be pink instead of gold. |
 | `hand_sewing_machine` | ~0.3 × 0.15 × 0.25 (sits on the fabric box) | 1–1.5k | shares the treadle atlas | Can be the treadle machine's head reused, with a hand crank. |
 | `drawing_table` | 1.12 × 0.8 × 1.1, plus stool | 1.5–2k | 512 | Tilted drafting board, paper, ruler, pencil, swing-arm lamp, round stool. |
@@ -109,7 +144,7 @@ Sizes are the greybox's, so build to these numbers or update `solid` afterwards.
 
 ### Things that are textures, not models (already done, replace if you find better)
 
-- **Russian rugs** (`assets/textures/rug-*.png`): 4 floor rugs, 1 vestibule runner, 4 wall rugs (Soviet-style "rug on the wall"), all in black/silver/pink with no red. They're generated by `tools/make_textures.py`. If you find a photo of a real rug you love, desaturate it and recolour it into the palette, then save it over the same filename.
+- **Russian rugs** (`assets/textures/rug-*.png`): pixel-art rugs in the house palette: `rug-kazak` (black, geometric), `rug-medallion` (black, rose medallion), `rug-runner-ivory`, `rug-runner-rose`, colourways of the first two (`-ivory`, `-rose`), and the lace carpets `rug-lace-blush/-noir/-pink/-silver`. The lace ones are made from the clean originals in `assets/rug-source/` by `python3 tools/rough_rugs.py`, which fades them, wears a path down the middle, adds dye banding, stains and frayed fringes (`--seed=N` for different wear). To change a rug, save a new picture over the same filename; keep the proportions about 2:3 (runners 1:1.9, lace 1:2).
 - **Stained glass** (`stained-glass-rose.png`, `stained-glass-moon.png`): 9 arched windows: door sidelights (inside and out), gallery either side of the fireplace, fitting room, textile room, bedroom. They glow. To give them real frames, model a thin lead/wood frame and put it at the same spots (`WINDOWS` in decor.js).
 - **Wallpapers**: recoloured copies (`assets/wallpapers/*-dw.jpg`). The originals are untouched. Plum tulips are gone (the archive is now black + silver). The vestibule, bedroom and outside walls are now black with pink roses.
 
@@ -214,7 +249,7 @@ Check each asset's licence; **CC0** needs no credit, **CC-BY** needs a credit li
 | Lace on/off, layered rugs | `LACE_WALLS`, `FLOOR_RUGS` in `decor.js` (each rug: position, size, turn, layer) |
 | Bedroom photos | `assets/photos/photo-1.jpg` … `photo-7.jpg` |
 | Little lines when you touch the samovar, TV, phone… | `whispers` in `app.js` |
-| Regenerate rugs/glass/bark/wallpaper colours | `python3 tools/make_textures.py`, then `python3 tools/make_lace_and_sprites.py` for lace, tree cards, treelines and photos (needs Pillow) |
+| Regenerate glass/bark/wallpaper colours | `python3 tools/make_textures.py` (it also writes the old generated rugs, which the game no longer uses), then `python3 tools/make_lace_and_sprites.py` for lace, tree cards, treelines and photos (needs Pillow) |
 
 ## Open questions for Dorothy
 

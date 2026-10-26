@@ -55,50 +55,118 @@ export const MATERIAL_TINT = {
   'DW_Pewter': '#a9a7b2',
   'DW_Dusty_Rose': '#e9b3cc',           // rail swatches: mauve -> light pink
   'Greybox / dusty pink': '#efc0d6',    // central plinth
-  'Ivory woven lace': '#ece8f2',        // lace curtains: cream -> pale silver (texture kept)
+  'DW_Sage': '#2e2a30',                 // sketchbooks: green -> charcoal
+  'Luminous pearl': '#f2d4e5',          // floating pearls: peach -> pearl pink
+  'Old paper': '#e9e2dc',               // paper patterns: tan -> ivory
+  'Rose thread': '#f45ff0',             // thread spools: red -> Opal's hot pink (one of the few bright accents)
+  'CRT midnight glow': '#1c1a22',       // TV glass: teal -> charcoal
 };
+// Texture overrides (Blender material name -> { file: texture in assets/textures/, alpha, scale }). Empty for now.
+export const TEXTURE_SWAP = {};
 // GLB objects hidden at runtime because something below replaces them. Delete them in Blender when convenient.
-export const HIDE_FROM_GLB = [/^Courtyard carpet/, /^Atelier rug$/, /^Fitting rug$/, /^Textile_Rail_/, /^Gallery_Rail_.*Fabric_Swatch/];
+export const HIDE_FROM_GLB = [/^Courtyard carpet/, /^Atelier rug$/, /^Fitting rug$/, /^Textile_Rail_/, /^Gallery_Rail_.*Fabric_Swatch/,
+  /^Lace curtain/]; // the window curtains: replaced by the billowing sheer ones (WINDOW_CURTAINS)
+// Billowing sheer curtains, like the bedroom's, for the three big window openings in the house (2 m wide, curtains
+// drawn back to each side). [x, z (centre of the opening), facing ry: the way they blow, into the room]
+export const WINDOW_CURTAINS = [
+  [-3.25, 0, -PI / 2],  // courtyard -> west passage
+  [3.25, 0, PI / 2],    // courtyard -> east passage
+  [-5.45, 0, -PI / 2],  // west passage -> atelier
+];
 
-// ---------------------------------------------------------------- rugs (textures from tools/make_textures.py)
+// ---------------------------------------------------------------- rugs (pixel-art textures in assets/textures/rug-*.png)
 // floor: [texture, x, z, long, short, alongX, extra turn (radians), layer 0/1/2 (higher sits on top)]
-// wall:  [texture, x, y, z, width, height, facing ry]
+// wall:  [texture, x, y, z, width, height, facing ry]   (wall rugs hang sideways: the texture's long side runs across)
+// Rugs: kazak (black, geometric), medallion (black, rose medallion), runner-ivory, runner-rose, plus colourways of the
+// first two (-ivory, -rose); and the lace carpets (lace-blush, -noir, -pink, -silver: 1:2, roughed up by
+// tools/rough_rugs.py from the clean originals in assets/rug-source/). Keep each rug close to its
+// texture's proportions (about 2:3, runners 1:1.9, lace 1:2) so the pattern isn't stretched.
+// A long passage gets several runners laid end to end rather than one stretched runner.
+function runnerRow(tex, x, z, length, alongX, aspect = 1.9, gap = .08) {
+  const n = Math.max(1, Math.round(length / 1.5)), len = (length - gap * (n - 1)) / n, w = len / aspect, out = [];
+  for (let i = 0; i < n; i++) { const o = -length / 2 + len / 2 + i * (len + gap); out.push([tex, alongX ? x + o : x, alongX ? z : z + o, len, w, alongX]); }
+  return out;
+}
 export const FLOOR_RUGS = [
-  ['rug-nocturne', 0, -1.8, 2.7, 1.7, true],                 // courtyard
-  ['rug-rose', -1.0, -2.4, 1.7, 1.1, true, .35, 1],
-  ['rug-graphite', 1.4, -1.1, 1.6, 1.05, true, -.25, 1],     //   ...under the samovar table
-  ['rug-blush', -7.4, 2.65, 2.6, 1.55, true],                // atelier
-  ['rug-graphite', -6.7, 3.6, 1.5, 1.0, true, .3, 1],
-  ['rug-silver', 7.3, 2.8, 2.2, 1.7, true],                  // fitting room
-  ['rug-rose', 7.9, 3.7, 1.4, .95, true, -.4, 1],
-  ['rug-blush', -6.9, -7.89, 2.7, 1.7, true],                // bedroom / library
-  ['rug-nocturne', -4.1, -7.3, 2.2, 1.4, true, .12, 1],
-  ['rug-silver', -6.1, -6.8, 1.4, .9, true, -.5, 2],
-  ['rug-runner', 0, 7.75, 3.0, 0.95, false],                 // vestibule runner
-  ['rug-rose', .25, 9.25, 1.2, .8, true, .5, 1],
-  ['rug-wall-pale', 7.55, -2.6, 2.0, 1.3, false],            // archive
-  ['rug-graphite', -7.5, -3.6, 1.4, .95, true, .4],          // textile room
-  ['rug-wall-black', 3.8, -8.9, 2.2, 1.4, true, .08],        // gallery, under the polar bear
+  ['rug-medallion', 0, -1.8, 2.7, 1.65, true],               // courtyard
+  ['rug-kazak-rose', -1.0, -2.4, 1.6, 1.07, true, .35, 1],
+  ['rug-kazak', 1.4, -1.1, 1.6, 1.07, true, -.25, 1],        //   ...under the samovar table
+  ['rug-medallion-ivory', -7.4, 2.65, 2.6, 1.57, true],      // atelier
+  ['rug-lace-silver', -6.7, 3.6, 1.6, .8, true, .3, 1],
+  ['rug-kazak-ivory', 7.3, 2.8, 2.3, 1.53, true],            // fitting room
+  ['rug-lace-blush', 7.9, 3.7, 1.5, .75, true, -.4, 1],
+  ['rug-medallion-ivory', -6.9, -7.89, 2.7, 1.63, true],     // bedroom / library
+  ['rug-lace-noir', -4.1, -7.3, 2.2, 1.1, true, .12, 1],
+  ['rug-kazak-ivory', -6.1, -6.8, 1.4, .93, true, -.5, 2],
+  ...runnerRow('rug-runner-ivory', 0, 7.75, 3.0, false),     // vestibule
+  ['rug-kazak-rose', .25, 9.25, 1.2, .8, true, .5, 1],
+  ['rug-kazak-ivory', 7.55, -2.6, 2.0, 1.33, false],         // archive
+  ['rug-kazak', -7.5, -3.6, 1.4, .93, true, .4],             // textile room
+  ['rug-kazak', 3.8, -8.9, 2.2, 1.47, true, .08],            // gallery, under the polar bear
+  // more layering (they all share one texture and one mesh, so extra rugs are free)
+  ...runnerRow('rug-runner-rose', -2.7, 4.7, 3.4, true),     // south passage
+  ...runnerRow('rug-runner-rose', 2.9, 4.7, 3.4, true),
+  ...runnerRow('rug-runner-ivory', -2.6, -4.7, 3.6, true),   // north passage
+  ...runnerRow('rug-runner-ivory', 2.6, -4.7, 3.6, true),
+  ...runnerRow('rug-runner-rose', -4.2, 0, 4.2, false),      // west passage
+  ...runnerRow('rug-runner-ivory', 4.2, 0, 4.2, false),      // east passage
+  ['rug-lace-silver', 1.7, 1.6, 1.6, .8, true, .45, 1],      // courtyard, near the chair
+  ['rug-kazak-rose', -1.25, 7.25, 1.0, .67, false, .2, 1],   // vestibule, under the coat stand
+  ['rug-medallion-ivory', .95, -7.4, 2.0, 1.2, true, .12],   // gallery, in front of the west rail
+  ['rug-kazak-rose', 6.0, -7.3, 1.6, 1.07, true, .25, 1],    // gallery, in front of the east rail
+  ['rug-lace-pink', 7.9, -7.0, 1.4, .7, false, -.3],         // gallery, by the TV
+  ['rug-kazak-rose', 6.9, -4.6, 1.3, .87, true, .2, 1],      // archive, under the desk chair
+  ['rug-kazak-ivory', -7.4, .9, 2.4, 1.6, true],             // atelier, under the cutting table
+  ['rug-kazak-rose', -6.2, -3.1, 1.4, .93, false, -.35, 1],  // textile room, by the drawing table
+  ['rug-medallion', 7.0, 1.1, 1.2, .73, true, .5],           // fitting room, by the door
+  ['rug-kazak-rose', -5.1, -8.9, 1.0, .67, true, -.2, 2],    // bedroom, bedside
+  ['rug-medallion', 3.3, 44.8, 1.4, .85, true],              // the shrine step: a prayer rug under the offerings
 ];
-export const WALL_RUGS = [
-  ['rug-wall-pale', -9.385, 1.6, 2.55, 1.55, 1.3, PI / 2],   // atelier west wall
-  ['rug-wall-black', 7.0, 1.55, 5.685, 1.6, 1.25, PI],       // fitting room, over the bench
-  ['rug-wall-black', -4.0, 1.5, -9.885, 2.4, 1.6, 0],        // bedroom, Soviet style over the iron bed
-  ['rug-wall-pale', -2.085, 1.5, 8.6, 1.3, 1.05, PI / 2],    // vestibule, over the bench
-];
+// Rugs stay on the floor: what hangs on the walls is the tapestries (in ART). Kept empty, but still works if needed.
+export const WALL_RUGS = [];
 
 // ---------------------------------------------------------------- stained glass (unlit, glows at night)
-// [design, x, yBottom, z, width, height, facing ry]. design = texture assets/textures/stained-glass-<design>.png
-// (add your own with tools/import_glass.py, then use its name here). Windows are opalescent: see OPAL in opal.js.
+// [design, x, yBottom, z, width, height, facing ry (into the room), outside?]. design = texture
+// assets/textures/stained-glass-<design>.png: cigarette, sword, scissors, spool (96x256, 3:8; no flowers;
+// add your own with tools/import_glass.py). outside = true: an exterior wall, so the same window also shows on the
+// outside of the house, seen from the road. All the glass shares one texture and one mesh. Opalescent: see opal.js.
+const G = (d, x, z, ry, w = .54, yb = .95) => [d, x, yb, z, w, w * 8 / 3, ry, true];
 export const WINDOWS = [
-  ['moon', -1.25, 0.9, 9.885, 0.5, 1.4, PI], ['moon', 1.25, 0.9, 9.885, 0.5, 1.4, PI],      // door sidelights, inside
-  ['moon', -1.25, 0.9, 10.115, 0.5, 1.4, 0], ['moon', 1.25, 0.9, 10.115, 0.5, 1.4, 0],      // ...and outside, seen from the road
-  ['rose', 2.35, 0.95, -9.885, 0.6, 1.4, 0], ['rose', 5.25, 0.95, -9.885, 0.6, 1.4, 0],     // gallery, flanking the fireplace
-  ['rose', 9.385, 1.0, 3.45, 0.55, 1.3, -PI / 2],                                           // fitting room east wall
-  ['rose', -9.385, 1.3, -4.85, 0.5, 1.05, PI / 2],                                          // textile room, over the sewing machine
+  G('cigarette', -1.25, 9.885, PI, .5, .9), G('cigarette', 1.25, 9.885, PI, .5, .9), // front door sidelights
+  G('sword', -2.085, 7.6, PI / 2),                                          // entrance, west wall
+  G('scissors', -9.385, .3, PI / 2), G('spool', -9.385, 2.3, PI / 2),       // atelier
+  G('scissors', -9.385, -4.85, PI / 2, .46, 1.12),                          // textile room, over the sewing machine
+  G('sword', 2.35, -9.885, 0), G('sword', 5.25, -9.885, 0),                 // gallery, either side of the fireplace
 ];
 // Colour of the light each design throws on the floor (import_glass.py prints a suggestion for new designs).
-export const GLASS_LIGHT = { rose: '#f070e6', moon: '#b9c8ff' };
+export const GLASS_LIGHT = { cigarette: '#bfbafa', scissors: '#beb4f6', sword: '#c0acf5', spool: '#e796ea' };
+
+// ---------------------------------------------------------------- wall art (Russian folk + painting, in the palette)
+// [file in assets/art/, x, y (centre height), z, width, height, facing ry, frame: silver | black | none | rod, name, line]
+// Replace an image with your own (same filename, same proportions) or add a row. All art shares one texture.
+export const ART = [
+  ['smoke-rings.png', 2.09, 1.62, 8.95, .48, .64, -PI / 2, 'black', 'THE POSTER', 'After Alphonse Mucha\'s poster for JOB cigarette papers, 1896. The smoke curls into her hair.'],
+  ['plate-flowers.png', 2.09, 1.7, 7.1, .45, .45, -PI / 2, 'none', 'THE PLATE', 'A porcelain plate painted with pink blossoms, hung by the telephone.'],
+  ['moonlit-river.png', -2.0, 1.75, -3.49, .8, .6, 0, 'silver', 'THE PAINTING', 'After Arkhip Kuindzhi\'s Moonlit Night on the Dnieper, 1880. When it was first shown, alone in a dark room, people queued for hours to see it.'],
+  ['photo-match.png', -1.2, 1.62, 5.9, .6, .7, 0, 'black', 'THE PHOTOGRAPH', 'A woman lighting a cigarette, her face lit by the flame. She has been waiting a long time for someone.'],
+  ['photo-smoke.png', 1.6, 1.62, 5.9, .55, .7, 0, 'black', 'THE PHOTOGRAPH', 'Eyes closed, a cigarette, a little hat. Whatever happened, she is not going to tell you.'],
+  ['photo-gun.png', -2.05, 1.72, -3.715, .52, .7, PI, 'black', 'THE FILM STILL', 'She has the gun. He has the chair. It is not clear who is in trouble.'],
+  ['photo-pearls.png', -2.99, 1.72, 2.4, .49, .7, PI / 2, 'silver', 'THE PHOTOGRAPH', 'Pearls to the waist and a cigarette holder as long as her arm.'],
+  ['photo-holder.png', 2.99, 1.72, 2.4, .46, .7, -PI / 2, 'silver', 'THE PHOTOGRAPH', 'Black gloves, a long holder, and a look that says the party was her idea.'],
+  ['photo-fur.png', -.95, 1.75, -9.885, .5, .7, 0, 'black', 'THE FILM STILL', 'A blonde in white fur, smoke curling up, a man watching from the dark behind her.'],
+  ['zhostovo-tray.png', 2.0, 1.75, -3.49, .55, .55, 0, 'none', 'THE TRAY', 'A black lacquered Zhostovo tray, painted with roses. Too pretty to carry tea on.'],
+  ['birch-wood.png', -2.0, 1.72, 3.49, .46, .66, PI, 'silver', 'THE PAINTING', 'Ivan Shishkin, In the Wild North, 1891. A lone pine on a snowy cliff, dreaming of a palm tree far away.'],
+  ['gzhel-plate.png', 2.0, 1.75, 3.49, .45, .45, PI, 'none', 'THE PLATE', 'A porcelain plate, hung on the wall like a second moon.'],
+  ['painting-reclining.png', -2.99, 1.72, -2.4, .66, .66, PI / 2, 'silver', 'THE PAINTING', 'Frederic Leighton, Flaming June, 1895. He painted her in blazing orange. Here she sleeps in pink.'],
+  ['photo-blonde.png', 2.99, 1.72, -2.4, .56, .7, -PI / 2, 'silver', 'THE PHOTOGRAPH', 'Platinum curls, a cigarette, and no intention of explaining herself.'],
+  ['kokoshnik-portrait.png', 2.6, 1.74, -5.91, .62, .92, PI, 'silver', 'THE SWAN PRINCESS', 'Mikhail Vrubel, The Swan Princess, 1900. She is turning back into a swan, and looking over her shoulder at you.'],
+  ['plate-birds.png', 4.55, 1.74, -5.91, .62, .62, PI, 'none', 'THE PLATE', 'A pierced porcelain plate: two long-tailed birds in a blossoming branch.'],
+  ['firebird.png', 6.4, 1.74, -5.91, .5, .72, PI, 'black', 'THE FIREBIRD', 'Ivan Bilibin, Ivan Tsarevich and the Firebird, 1899. They say one feather lights a whole room.'],
+  ['cinema-poster.png', 9.385, 1.62, -8.5, .5, .7, -PI / 2, 'black', 'THE FILM POSTER', '"A Life for a Life", 1916, starring Vera Kholodnaya, queen of the silent screen. "For every tear, a drop of blood."'],
+  ['tapestry-birds.png', -7.4, 1.65, 5.69, 1.2, .8, PI, 'rod', 'THE TAPESTRY', 'Two birds of paradise in a flowering branch, woven in black and rose. Hung from a silver rod like a painting.'],
+  ['tapestry-leaves.png', -6.4, 1.7, -1.485, 1.2, .8, 0, 'rod', 'THE TAPESTRY', 'Rose acanthus leaves on black wool. There is a copy of it half-finished on the loom.'],
+  ['photo-dancer.png', 8.4, 1.9, 5.685, .45, .72, PI, 'black', 'THE PHOTOGRAPH', 'A dancer in a slip of a dress, caught mid-turn in the dark.'],
+];
 
 // ---------------------------------------------------------------- props
 // solid: local footprint [x0, z0, x1, z1, height] for collision (front = +z). model: '' until a real .glb exists.
@@ -122,6 +190,15 @@ export const PROPS = [
   // vestibule
   { id: 'telephone_table', model: '', x: 1.84, z: 7.1, ry: -PI / 2, solid: [-.26, -.2, .26, .2, .9], build: phoneTable },
   // fitting room
+  // Soviet cast-iron radiators (MS-140 style), painted with silver 'serebryanka' paint. Model ONE radiator and
+  // put the same .glb on all of them (sections: n). Front faces into the room.
+  { id: 'radiator_gallery_w', model: '', x: 2.35, z: -9.81, ry: 0, solid: [-.5, -.08, .5, .08, .8], build: k => radiator(k, 9) },
+  { id: 'radiator_gallery_e', model: '', x: 5.25, z: -9.81, ry: 0, solid: [-.5, -.08, .5, .08, .8], build: k => radiator(k, 9) },
+  { id: 'radiator_fitting', model: '', x: 9.31, z: 3.45, ry: -PI / 2, solid: [-.45, -.08, .45, .08, .8], build: k => radiator(k, 8) },
+  { id: 'radiator_bedroom', model: '', x: -9.31, z: -7.9, ry: PI / 2, solid: [-.5, -.08, .5, .08, .8], build: k => radiator(k, 9) },
+  { id: 'radiator_vestibule', model: '', x: -2.01, z: 9.4, ry: PI / 2, solid: [-.35, -.08, .35, .08, .8], build: k => radiator(k, 6) },
+  { id: 'radiator_courtyard_w', model: '', x: -2.91, z: 0, ry: PI / 2, solid: [-.45, -.08, .45, .08, .8], build: k => radiator(k, 8) },
+  { id: 'radiator_courtyard_e', model: '', x: 2.91, z: 0, ry: -PI / 2, solid: [-.45, -.08, .45, .08, .8], build: k => radiator(k, 8) },
   { id: 'mirror_frame', model: '', x: 9.33, z: 2.1, ry: -PI / 2, build: mirrorFrame },
   { id: 'candelabra', model: '', x: 5.75, z: 5.35, ry: 0, solid: [-.15, -.15, .15, .15, 1.4], build: candelabra },
   { id: 'magazines_fitting', model: '', x: 7.6, z: 5.35, ry: -.2, build: magazineStack },
@@ -322,6 +399,34 @@ function phoneTable(k) {
   for (const s of [-1, 1]) k.sph(.07, PAL.hot, { p: [.04 + s * .12, top + .14, -.02], s: [1, .7, 1] }, 6);
   candleUnit(k, -.17, -.08, top, .18);
 }
+function artFrame(k, w, h, style) { // drawn around the picture, which hangs at local (0, 0) facing +z
+  if (style === 'silver' || style === 'black') {
+    const t = style === 'silver' ? .055 : .03, c = style === 'silver' ? PAL.chrome : PAL.black, d = .04;
+    k.box(w + 2 * t, t, d, c, { p: [0, h / 2 + t / 2, d / 2] }); k.box(w + 2 * t, t, d, c, { p: [0, -h / 2 - t / 2, d / 2] });
+    k.box(t, h, d, c, { p: [-w / 2 - t / 2, 0, d / 2] }); k.box(t, h, d, c, { p: [w / 2 + t / 2, 0, d / 2] });
+    if (style === 'silver') { k.box(w + .02, .012, .01, PAL.black, { p: [0, h / 2 + .006, .02] }); k.box(w + .02, .012, .01, PAL.black, { p: [0, -h / 2 - .006, .02] }); }
+  } else if (style === 'rod') { // a textile hung from a silver rod with round finials
+    k.cyl(.025, .025, w + .2, PAL.chrome, { p: [0, h / 2 + .02, .04], r: [0, 0, PI / 2] }, 6);
+    for (const x of [-w / 2 - .12, w / 2 + .12]) k.sph(.06, PAL.chrome, { p: [x, h / 2 + .02, .04] }, 6);
+  } else k.cyl(.02, .02, .03, PAL.graphite, { p: [0, h / 2 - .03, .015], r: [PI / 2, 0, 0] }, 5); // a nail
+}
+ART.forEach(([file, x, y, z, w, h, ry, style], i) => PROPS.push({ id: 'art_' + i, model: '', x, y, z, ry, build: k => artFrame(k, w, h, style) }));
+function radiator(k, n = 8) {
+  const paint = '#a9a8b4', shade = '#8e8c98', sw = .093, w = n * sw;
+  for (let i = 0; i < n; i++) {
+    const x = -w / 2 + sw * (i + .5);
+    k.box(.072, .5, .13, i % 2 ? paint : shade, { p: [x, .4, 0] });
+    k.cyl(.072, .072, .13, paint, { p: [x, .65, 0], r: [PI / 2, 0, 0] }, 8);   // rounded top of each section
+    k.cyl(.072, .072, .13, shade, { p: [x, .15, 0], r: [PI / 2, 0, 0] }, 8);   // rounded bottom
+  }
+  k.cyl(.035, .035, w + .1, shade, { p: [0, .65, -.03], r: [0, 0, PI / 2] }, 6); // header pipes
+  k.cyl(.035, .035, w + .1, shade, { p: [0, .15, -.03], r: [0, 0, PI / 2] }, 6);
+  k.cyl(.028, .028, .62, PAL.graphite, { p: [w / 2 + .1, .32, -.03] }, 6);      // supply pipe into the floor
+  k.cyl(.03, .03, .1, PAL.graphite, { p: [w / 2 + .05, .65, -.03], r: [0, 0, PI / 2] }, 6);
+  k.cyl(.09, .09, .02, PAL.black, { p: [w / 2 + .1, .74, -.03] }, 8);          // valve wheel
+  k.cyl(.02, .02, .08, PAL.black, { p: [w / 2 + .1, .7, -.03] }, 5);
+  for (const x of [-w / 2 + .1, w / 2 - .1]) k.box(.03, .05, .1, PAL.graphite, { p: [x, .74, -.04] }); // wall brackets
+}
 function mirrorFrame(k) { // the reflective glass itself is made in babylon-world.js (1 x 2 m at 0.3-2.3 m high)
   const c = PAL.chrome, y = 1.3;
   k.box(.09, 2.18, .07, c, { p: [-.545, y, 0] }); k.box(.09, 2.18, .07, c, { p: [.545, y, 0] });
@@ -476,7 +581,7 @@ export function buildDecor(scene, { touch } = {}) {
   // All rugs share one atlas texture and one mesh (one draw call instead of ~13: the lace walls hide nothing,
   // so everything in the house is drawn from everywhere and every draw call counts on phones).
   const rugNames = [...new Set([...FLOOR_RUGS.map(r => r[0]), ...WALL_RUGS.map(r => r[0])])];
-  const rugAtlas = makeAtlas(scene, rugNames.map(n => 'assets/textures/' + n + '.png'), { cellW: 256, cellH: 512, cols: 4 });
+  const rugAtlas = makeAtlas(scene, rugNames.map(n => 'assets/textures/' + n + '.png'), { cellW: 256, cellH: 512, cols: 8, alpha: true, smooth: false, crisp: true }); // alpha: frayed fringes
   const rugParts = [];
   for (const [name, x, z, long, short, alongX, turn = 0, layer = 0] of FLOOR_RUGS) {
     const g = ground('rug', { width: short, height: long }, scene);
@@ -484,7 +589,7 @@ export function buildDecor(scene, { touch } = {}) {
   }
   for (const [name, x, y, z, w, h, ry] of WALL_RUGS) {
     const p = B.MeshBuilder.CreatePlane('wall rug', { width: w, height: h }, scene);
-    p.position.set(x, y, z); p.rotation.y = ry; rugAtlas.mapUVs(p, rugNames.indexOf(name)); rugParts.push(p);
+    p.position.set(x, y, z); p.rotation.y = ry; rugAtlas.mapUVs(p, rugNames.indexOf(name), false, true); rugParts.push(p); // tall texture, hung sideways
   }
   {
     const rugs = B.Mesh.MergeMeshes(rugParts, true, true); rugs.name = 'rugs';
@@ -492,27 +597,49 @@ export function buildDecor(scene, { touch } = {}) {
     rugs.material = m; rugs.isPickable = false; rugs.freezeWorldMatrix(); rugs.setEnabled(false); out.meshes.push(rugs);
     rugAtlas.onReady(t => { m.diffuseTexture = t; rugs.setEnabled(true); });
   }
-  for (const t of out.tapestries) { // half-woven piece on the loom uses the black wall-rug pattern
+  for (const t of out.tapestries) { // half-woven piece on the loom: the leaf tapestry from the atelier wall, woven from the bottom up
     const p = B.MeshBuilder.CreatePlane('tapestry', { width: t.w, height: t.h }, scene);
     p.position.set(...t.p); p.rotation.y = t.ry;
-    const m = flatMat('rug-wall-black'); m.diffuseTexture = new Texture('assets/textures/rug-wall-black.png', scene, false, true); m.diffuseTexture.vScale = .6;
+    const m = new B.StandardMaterial('loom tapestry', scene); m.specularColor = B.Color3.Black(); m.backFaceCulling = false; m.maxSimultaneousLights = 5;
+    m.diffuseTexture = new Texture('assets/art/tapestry-leaves.png', scene, true, true, Texture.NEAREST_SAMPLINGMODE); m.diffuseTexture.vScale = .6;
     p.material = m; p.isPickable = false; p.freezeWorldMatrix(); out.meshes.push(p);
+  }
+  // ---- wall art: one atlas texture, one mesh
+  {
+    const atlas = makeAtlas(scene, ART.map(a => 'assets/art/' + a[0]), { cellW: 256, cellH: 256, cols: 8, alpha: true, smooth: false, crisp: true });
+    const parts = ART.map(([file, x, y, z, w, h, ry], i) => {
+      const p = B.MeshBuilder.CreatePlane('art', { width: w, height: h }, scene);
+      p.position.set(x + Math.sin(ry) * .012, y, z + Math.cos(ry) * .012); p.rotation.y = ry + PI; atlas.mapUVs(p, i, true); return p;
+    });
+    const art = B.Mesh.MergeMeshes(parts, true, true); art.name = 'wall art';
+    const m = new B.StandardMaterial('wall art', scene); m.specularColor = B.Color3.Black(); m.emissiveColor = B.Color3.FromHexString('#2c272e'); m.backFaceCulling = true;
+    art.material = m; art.isPickable = false; art.freezeWorldMatrix(); art.setEnabled(false); out.meshes.push(art);
+    atlas.onReady(t => { m.diffuseTexture = t; art.setEnabled(true); });
   }
   // polar bear skin
   const bear = ground('polar bear rug', { width: 1.05, height: 1.55 }, scene);
   bear.position.set(3.8, .03, -8.85); bear.rotation.y = PI / 2;
   const bm = flatMat('polar-bear-rug', false, true); bm.useAlphaFromDiffuseTexture = false; bm.zOffset = -8; bear.material = bm; bear.isPickable = false; bear.freezeWorldMatrix();
 
-  // ---- stained glass: unlit, alpha-tested arch
-  const glass = {};
-  for (const [d, x, y, z, w, h, ry] of WINDOWS) {
-    const p = B.MeshBuilder.CreatePlane('stained glass', { width: w, height: h }, scene);
-    p.position.set(x, y + h / 2, z); p.rotation.y = ry; (glass[d] ??= []).push(p);
-  }
+  // ---- stained glass: unlit, alpha-tested arches, every design in one atlas (one draw call for all the windows)
   out.glassMats = [];
-  for (const d of Object.keys(glass)) {
-    const m = glass[d].length > 1 ? B.Mesh.MergeMeshes(glass[d], true, true) : glass[d][0];
-    m.material = flatMat('stained-glass-' + d, true, true); m.material.zOffset = -1; m.isPickable = false; m.freezeWorldMatrix(); out.meshes.push(m); out.glassMats.push(m.material);
+  {
+    const designs = [...new Set(WINDOWS.map(w => w[0]))];
+    const atlas = makeAtlas(scene, designs.map(d => 'assets/textures/stained-glass-' + d + '.png'), { cellW: 128, cellH: 256, cols: 8, alpha: true, smooth: false, crisp: true });
+    const parts = [];
+    const pane = (d, x, y, z, w, h, ry) => { // faces the direction ry, like the wall art
+      const p = B.MeshBuilder.CreatePlane('stained glass', { width: w, height: h }, scene);
+      p.position.set(x, y + h / 2, z); p.rotation.y = ry + PI; atlas.mapUVs(p, designs.indexOf(d), true); parts.push(p);
+    };
+    for (const [d, x, y, z, w, h, ry, outside] of WINDOWS) {
+      pane(d, x, y, z, w, h, ry);
+      if (outside) pane(d, x - Math.sin(ry) * .23, y, z - Math.cos(ry) * .23, w, h, ry + PI); // the outer face of the wall
+    }
+    const m = B.Mesh.MergeMeshes(parts, true, true); m.name = 'stained glass';
+    const mat = new B.StandardMaterial('stained glass', scene); mat.disableLighting = true; mat.emissiveColor = B.Color3.White();
+    mat.specularColor = B.Color3.Black(); mat.zOffset = -1; mat.maxSimultaneousLights = 5;
+    m.material = mat; m.isPickable = false; m.freezeWorldMatrix(); m.setEnabled(false); out.meshes.push(m); out.glassMats.push(mat);
+    atlas.onReady(t => { mat.diffuseTexture = t; m.setEnabled(true); });
   }
 
   // ---- sheer lace: bed canopy (gentle sway) and bedroom curtains (billowing in the wind)
@@ -527,32 +654,38 @@ export function buildDecor(scene, { touch } = {}) {
     cone.position.set(...c.p); const m = sheerMat('#f4e8f0'); m.diffuseTexture.uScale = 4; m.diffuseTexture.vScale = 2; cone.material = m; cone.isPickable = false;
     out.tick.push((t, reduced) => { if (reduced) return; cone.rotation.x = Math.sin(t * .0007) * .025; cone.rotation.z = Math.sin(t * .0009 + 1) * .03; });
   }
-  if (out.curtains.length) {
-    const COLS = 5, ROWS = 9, curtains = [];
-    for (const c of out.curtains) {
-      const pos = [], uv = [], idx = [];
-      for (let r = 0; r <= ROWS; r++) for (let q = 0; q <= COLS; q++) { pos.push(0, 0, 0); uv.push(q / COLS, 1 - r / ROWS); }
-      for (let r = 0; r < ROWS; r++) for (let q = 0; q < COLS; q++) { const a = r * (COLS + 1) + q, b = a + COLS + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
-      const mesh = new B.Mesh('curtain', scene), vd = new B.VertexData(); vd.positions = pos; vd.uvs = uv; vd.indices = idx; vd.applyToMesh(mesh, true);
-      mesh.position.set(...c.p); mesh.rotation.y = c.ry; mesh.material = sheerMat('#ffd3e8'); mesh.material.diffuseTexture.uScale = 2; mesh.material.diffuseTexture.vScale = 3; mesh.isPickable = false; mesh.alwaysSelectAsActiveMesh = true;
-      curtains.push({ c, mesh, pos: new Float32Array(pos.length) });
-    }
+  // the window openings get the same curtains as the bedroom: a pair drawn back to each side
+  for (const [x, z, ry] of WINDOW_CURTAINS) for (const s of [-1, 1]) {
+    const o = s * .74; // along the wall, from the middle of the 2 m opening
+    out.curtains.push({ p: [x + Math.cos(ry) * o, 2.4, z - Math.sin(ry) * o], ry, w: .58, h: 1.58, phase: (x + s) * 1.3 });
+  }
+  if (out.curtains.length) { // all curtains are one mesh (one draw call), moved on the CPU a few times a second
+    const COLS = 5, ROWS = 9, N = (COLS + 1) * (ROWS + 1), uv = [], idx = [];
+    out.curtains.forEach((c, n) => {
+      for (let r = 0; r <= ROWS; r++) for (let q = 0; q <= COLS; q++) uv.push(q / COLS, 1 - r / ROWS);
+      for (let r = 0; r < ROWS; r++) for (let q = 0; q < COLS; q++) { const a = n * N + r * (COLS + 1) + q, b = a + COLS + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+    });
+    const pos = new Float32Array(out.curtains.length * N * 3);
+    const mesh = new B.Mesh('curtains', scene), vd = new B.VertexData(); vd.positions = pos; vd.uvs = uv; vd.indices = idx; vd.applyToMesh(mesh, true);
+    mesh.material = sheerMat('#ffd3e8'); mesh.material.diffuseTexture.uScale = 2; mesh.material.diffuseTexture.vScale = 3; mesh.isPickable = false; mesh.alwaysSelectAsActiveMesh = true;
     let last = -1e9;
     const wave = (t, reduced, p) => {
       if (t - last < 33) return; last = t;
-      if (p && Math.hypot(p.x + 6, p.y + 8) > 14) return; // only animate when the bedroom could be in view
-      for (const { c, mesh, pos } of curtains) {
-        let i = 0;
+      if (p && !out.curtains.some(c => Math.hypot(p.x - c.p[0], p.y - c.p[2]) < 14)) return; // only when one could be in view
+      let i = 0;
+      for (const c of out.curtains) {
+        const ax = Math.cos(c.ry), az = -Math.sin(c.ry), fx = Math.sin(c.ry), fz = Math.cos(c.ry); // along the wall, into the room
         for (let r = 0; r <= ROWS; r++) for (let q = 0; q <= COLS; q++) {
           const u = q / COLS, v = r / ROWS, k = Math.pow(v, 1.3);
           const gust = reduced ? .35 : .55 + .45 * Math.sin(t * .0011 + c.phase) * Math.sin(t * .00037 + c.phase * 2);
           const billow = k * .55 * gust + (reduced ? 0 : Math.sin(t * .004 + u * 5 + v * 4 + c.phase) * .05 * k);
-          pos[i++] = (u - .5) * c.w + (reduced ? 0 : Math.sin(t * .0023 + v * 3 + c.phase) * .08 * k);
-          pos[i++] = -v * c.h + billow * billow * .25;
-          pos[i++] = billow; // into the room
+          const lx = (u - .5) * c.w + (reduced ? 0 : Math.sin(t * .0023 + v * 3 + c.phase) * .08 * k);
+          pos[i++] = c.p[0] + ax * lx + fx * billow;
+          pos[i++] = c.p[1] - v * c.h + billow * billow * .25;
+          pos[i++] = c.p[2] + az * lx + fz * billow;
         }
-        mesh.updateVerticesData('position', pos);
       }
+      mesh.updateVerticesData('position', pos);
     };
     wave(0, true); out.tick.push(wave);
   }
@@ -562,7 +695,7 @@ export function buildDecor(scene, { touch } = {}) {
     const parts = out.photos.map(ph => {
       const pl = B.MeshBuilder.CreatePlane('photo', { width: ph.w, height: ph.h }, scene);
       pl.position.set(...ph.p); pl.rotation.y = ph.ry + PI; // plane faces -z; turn it to face out of the wall
-      atlas.mapUVs(pl, files.indexOf(ph.file)); return pl;
+      atlas.mapUVs(pl, files.indexOf(ph.file), true); return pl;
     });
     const photos = B.Mesh.MergeMeshes(parts, true, true); photos.name = 'photos';
     const m = new B.StandardMaterial('photos', scene); m.specularColor = B.Color3.Black(); m.emissiveColor = B.Color3.FromHexString('#2a2629'); m.zOffset = -1;

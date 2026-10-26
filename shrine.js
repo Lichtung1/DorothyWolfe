@@ -4,7 +4,7 @@
 //
 // Real models: set SHRINE.chapelModel / SHRINE.statueModel to .glb files in assets/models/
 // (origin = floor centre of the shrine, front facing -Y in Blender). Offerings and flames stay code-driven.
-import { Kit, PAL, loadModel } from './decor.js?v=dw-20261025b';
+import { Kit, PAL, loadModel } from './decor.js?v=dw-20261025t';
 import { Texture } from './babylon-extras.js';
 const B = window.BABYLON;
 const PI = Math.PI;

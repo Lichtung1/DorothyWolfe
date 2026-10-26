@@ -1,0 +1,4 @@
+# Full-size originals for wall art stay on your computer (big, and the game only uses the processed copies in assets/art/)
+assets/art-source/*
+!assets/art-source/README.txt
+__pycache__/

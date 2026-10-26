@@ -1,5 +1,59 @@
 # Dorothy Wolfe: GitHub Pages
 
+## What's new (25 Oct 2026, round 11)
+
+- **New stained glass**: four designs (cigarette, sword, scissors, spool) in eight windows on the outside walls: cigarettes either side of the front door, a sword in the entrance, scissors and a spool in the atelier, scissors over the textile room's sewing machine, and swords either side of the gallery fireplace. Each one shows on the outside of the house too, so the cottage glows from the road, and each throws coloured light on the floor inside. All the glass is one texture and one draw call.
+- **Billowing curtains**: the three big window openings (courtyard to the passages, passage to the atelier) have the bedroom's sheer, wind-blown curtains now. All curtains are one mesh.
+- **Femme fatale wall**: the woman lighting a cigarette greets you in the entrance, with five more photographs and film stills around the courtyard, the north passage and the gallery.
+
+## What's new (25 Oct 2026, round 10)
+
+- **Plates and the tray** are see-through only outside their rim: no square backgrounds, no holes in the porcelain.
+- **Window curtains** are sheer white lace instead of a tan weave that read as brown.
+- **Off-palette colours fixed**: green sketchbooks, peach pearls, tan paper patterns, red thread spools (now hot pink) and the teal TV glass. All in `MATERIAL_TINT` / `TEXTURE_SWAP` in `decor.js`; delete a line to undo it.
+
+## What's new (25 Oct 2026, round 9)
+
+- **Lace carpets**: four lace-pattern carpets (blush, noir, pink, silver), roughed up so they look lived in: the candy pinks faded to dusty rose with the hot pink kept as an accent, a worn path down the middle, dye banding, stains and frayed fringes you can see the floor through. They're floor rugs, layered with the others; the walls only have the tapestries now. `python3 tools/rough_rugs.py` remakes them from the clean originals in `assets/rug-source/`.
+
+## What's new (25 Oct 2026, round 8)
+
+- **White lace everywhere**: the gallery, fitting room, atelier and textile room lace is white now, like the rest of the house.
+- **Sharp at a distance**: the pictures and rugs no longer blur into a smudge when you're far away (no mipmaps, like the real PS1).
+- **New rugs**: four pixel-art rugs (a black kazak, a black rose medallion, an ivory runner and a rose runner) plus ivory and rose colourways, laid and layered through the house. Passages get runners laid end to end; the Soviet wall rugs use them too.
+- **Two tapestries** in the atelier (birds of paradise, and acanthus leaves, which is also the piece half-woven on the loom) and **three photographs**: a platinum blonde in the courtyard, a woman lighting a cigarette in the north passage and a dancer in the fitting room.
+
+## What's new (25 Oct 2026, round 7)
+
+- **A new collection**: Kuindzhi's moonlit Dnieper and Mucha's JOB poster (both redrawn), Shishkin's *In the Wild North*, Leighton's *Flaming June*, Vrubel's *Swan Princess*, Bilibin's Firebird and a 1916 Vera Kholodnaya film poster, plus three porcelain plates and a lacquered tray, a rose tapestry, a perfume advert and a winter fashion cover. Touch one to read what it is.
+- **One house palette**: every piece is in the same seven dusty-rose colours at 192 px, so the walls match. Frames are sized to each picture's proportions.
+
+## What's new (25 Oct 2026, round 6)
+
+- **A smaller collection**: back to the original nine pieces plus four of the new ones (the Luna poster, the Night Waltz poster, the atelier sketch and the reclining painting). The other six are spares, commented out at the end of `ART` in `decor.js` with their spots ready.
+- **Gentler processing**: 96 px, 20 colours and a light dither, so faces survive. Warm tones are graded into Opal's colours on the way in (salmon becomes cool pink, sepia becomes silver). `--fry=hard` gives the chunky pixel-art version.
+
+## What's new (25 Oct 2026, round 5)
+
+- **Pixel-art wall art**: every piece is flattened into clean colour blocks, then shrunk to 56 px with a 12-colour table and a light ordered dither (`python3 tools/import_art.py --fry`; `--fry=hard` is 44 px / 10 colours, `--fry=soft` 80 px / 16). Per-piece crop/recolour settings can go in `SLOT_OPTIONS` in that script.
+- **Six more frames** for magazine covers and paintings: a salon hang on the courtyard's side walls, plus the atelier and the north passage. 20 pieces in total, still one draw call.
+
+## What's new (25 Oct 2026, round 4)
+
+- **Mid-century glamour set**: 5 more frames for sultry 1950s–60s pieces (a cigarette ad, a woman at her vanity, a perfume advert, a film poster, a winter magazine cover), in the entrance, fitting room, gallery and archive. Stand-ins for now. `tools/make_art_placeholders.py` now only fills in missing art, so it never overwrites real pieces.
+
+## What's new (25 Oct 2026, round 3)
+
+- **Wall art is in**, deep-fried into PS1 textures with `python3 tools/import_art.py --fry`: about 128 px native, a 20-colour table and ordered (Bayer) dithering, kept pixel-sharp in the game. `--fry=hard` is crunchier. Full-size originals live in `assets/art-source/`, which is git-ignored so they're never uploaded.
+
+## What's new (25 Oct 2026, round 2)
+
+- **Camera focus**: touching something turns and tilts the view to look at it (the phone, a painting, the bed…), holds while you read, then levels out. Moving takes control back. `LOOK_H` / `FOCUS` in `app.js`.
+- **Russian wall art**: 9 pieces with frames (silver gilt, black, a shawl on a rod, a tray and a plate on nails) in the entrance, courtyard, gallery and atelier, all sharing one texture. Placeholders are in `assets/art/`. Put full-quality originals in `assets/art-source/` and run `python3 tools/import_art.py` to crop, shrink and PS1-process them. Each can be touched.
+- **Soviet radiators**: seven silver-painted cast-iron radiators under the windows and along walls (`radiator_*` in `decor.js`, one model reused).
+- **More rugs**: 3 new designs (`tools/make_more_rugs.py`), 36 rugs in total, including runners in every passage and a prayer rug at the shrine. Still one draw call.
+- **Make-list**: rebuilt as a ticked checklist at the top of `MODELING-GUIDE.md`.
+
 ## What's new (25 Oct 2026)
 
 - **Lined lace**: the gaps behind the lace are partly filled with a dark dithered "silk lining" (PS1 screen-door transparency), so rooms read as rooms but you still catch glimpses through. Interior walls are about 70% lined, the entrance, bedroom and outside of the house about 45%, and the secret passage wall about 30% (the peek into the bedroom). Dream mode goes sheer. `LACE_LINING` in `decor.js`; terminal `lining` toggles (remembered).
@@ -17,7 +71,7 @@
 
 ## What's new (24 Oct 2026, round 7)
 
-- **Refined lace pack** on every wall: hand-directed designs per room (rose sprigs, heart-and-tulip damask, fleur-de-lis, ferns, carnations, tulip ovals, snowflake stars, cross-stitch, and stars and crosses for the shrine). Source masks live in `assets/lace-source/`; `python3 tools/import_lace.py` converts them (2 px net, stitched rim, white or pink per room). To change a room's lace, replace its mask and re-run.
+- **Refined lace pack** on every wall: designs per room (rose sprigs, heart-and-tulip damask, fleur-de-lis, ferns, carnations, tulip ovals, snowflake stars, cross-stitch, and stars and crosses for the shrine). Source masks live in `assets/lace-source/`; `python3 tools/import_lace.py` converts them (2 px net, stitched rim, white or pink per room). To change a room's lace, replace its mask and re-run.
 - The shrine now has a panel of star-and-cross lace behind the statue.
 
 ## What's new (24 Oct 2026, round 6)

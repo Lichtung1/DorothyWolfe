@@ -10,7 +10,7 @@ For each room this:
   - adds the diagonal tulle net behind it, 2 px wide so it survives the PS1 resolution,
   - adds a slightly brighter stitched rim (cordonnet) and a faint woven texture inside the motifs,
     so it reads as thread rather than paper cut-outs,
-  - tints it white or light pink, with alpha = thread (see-through everywhere else).
+  - tints it white, with alpha = thread (see-through everywhere else).
 """
 import os
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
@@ -26,10 +26,10 @@ ROOMS = {  # source mask -> (texture name, thread colour)
     'courtyard': ('lace-courtyard', WHITE),
     'passage': ('lace-passage', WHITE),
     'archive': ('lace-archive', WHITE),
-    'gallery': ('lace-gallery', PINK),
-    'fitting': ('lace-fitting', PINK),
-    'atelier': ('lace-atelier', PINK),
-    'textile': ('lace-textile', PINK),
+    'gallery': ('lace-gallery', WHITE),
+    'fitting': ('lace-fitting', WHITE),
+    'atelier': ('lace-atelier', WHITE),
+    'textile': ('lace-textile', WHITE),
     'shrine': ('lace-shrine', WHITE),      # the panel behind the statue
 }
 NET_PERIOD = 32   # px along an edge between net threads (matches the pack's mesh)
