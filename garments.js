@@ -27,6 +27,7 @@ function imageSize(url) {
 
 export async function hangGarments(scene, list, { reduced } = {}) {
   const hung = list.slice(0, RAIL_SLOTS.length).map(g => 'assets/garments/' + g.image);
+  if (!hung.length) return { cards: [], tick: () => {} }; // nothing to hang yet: the rails stay empty
   const sizes = await Promise.all(hung.map(imageSize));
   const atlas = makeAtlas(scene, hung, { cellW: 256, cellH: 512, cols: 4, alpha: true });
   const cards = [], pos = [], uv = [], idx = [];

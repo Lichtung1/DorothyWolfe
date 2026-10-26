@@ -7,7 +7,7 @@
 // Walking: outside the house you can be anywhere within ROAD_WIDTH of the road's centre line, on the
 // doorstep, or in the shrine clearing. Movement slides smoothly along those edges (see constrain()).
 import { Texture, ground as flat, canvasTexture } from './babylon-extras.js';
-import { buildShrine } from './shrine.js?v=dw-20261025t';
+import { buildShrine } from './shrine.js?v=dw-20261025x';
 const B = window.BABYLON;
 
 // Road centre line from the front door (z = 10) to the clearing. Edit freely; walking and trees follow it.

@@ -16,4 +16,5 @@ GARMENTS: what hangs on the gallery rails and shows in Rooms > Collections.
    }
 3. The first six hang on the gallery rails (three per rail). All of them show in Collections.
 
-Placeholders: placeholder-1..6.png are drawn by tools/make_garments.py. Delete them once real ones are in.
+While garments.json is empty ([]), the rails are bare and Collections says 'Coming soon'.
+(tools/make_garments.py can draw pixel stand-ins if you ever want them again.)

@@ -138,3 +138,14 @@ body:not(.started) #interact{visibility:hidden}
   body:not(.hand-left) #swap-hand{right:calc(18px + 114px)}
   body.hand-left #swap-hand{left:calc(18px + 114px)}
 }
+
+/* Pop-up lines sit on a dark card so they stay readable over the white lace and pale models. */
+#whisper{width:max-content!important;max-width:min(560px,calc(100% - 32px))!important;color:#ffe3f0;text-shadow:none}
+#whisper:not(:empty){background:#131214eb;border:1px solid #ffb9dc66;padding:8px 14px;box-shadow:3px 3px #0009}
+
+/* the pop-up text fades out after a few seconds (see say() in app.js) */
+#whisper{opacity:0;transition:opacity .7s}
+#whisper.show{opacity:1;transition:opacity .15s}
+/* room buttons in the Directory: three to a row so the words never squash together */
+dialog#window :has(> [data-go]){display:flex;flex-wrap:wrap;gap:6px}
+dialog#window :has(> [data-go]) > [data-go]{flex:1 1 30%;padding:9px 6px;margin:0;line-height:1.3}
